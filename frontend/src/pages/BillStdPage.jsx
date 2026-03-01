@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import useBillStd from '../hooks/useBillStd'
-import Layout from '../components/common/Layout'
+import MainLayout from '../components/common/MainLayout'
 import Toast from '../components/common/Toast'
 import BillStdSearchBar from '../components/billstd/BillStdSearchBar'
 import BillStdForm from '../components/billstd/BillStdForm'
@@ -123,7 +123,7 @@ export default function BillStdPage() {
   }
 
   return (
-    <Layout maxWidth="max-w-6xl">
+    <MainLayout>
       <Toast message={successMessage} type="success" onClose={() => setSuccessMessage(null)} />
       <Toast message={serverError}    type="error"   onClose={() => setServerError(null)} />
 
@@ -147,6 +147,6 @@ export default function BillStdPage() {
         onChange={handleChange}
         onDelete={handleDeleteClick}
       />
-    </Layout>
+    </MainLayout>
   )
 }

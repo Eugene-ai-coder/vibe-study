@@ -5,6 +5,7 @@ import MainPage from './pages/MainPage'
 import UserPage from './pages/UserPage'
 import BillStdPage from './pages/BillStdPage'
 import SubscriptionPage from './pages/SubscriptionPage'
+import SubscriptionMainPage from './pages/SubscriptionMainPage'
 import StudyLogPage from './pages/StudyLogPage'
 
 export default function App() {
@@ -16,8 +17,9 @@ export default function App() {
         <Route path="/main"          element={<ProtectedRoute><MainPage /></ProtectedRoute>} />
         <Route path="/users"         element={<ProtectedRoute><UserPage /></ProtectedRoute>} />
         <Route path="/subscriptions" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
-        <Route path="/bill-std"      element={<ProtectedRoute><BillStdPage /></ProtectedRoute>} />
-        <Route path="/study-logs"    element={<ProtectedRoute><StudyLogPage /></ProtectedRoute>} />
+        <Route path="/bill-std"           element={<ProtectedRoute><BillStdPage /></ProtectedRoute>} />
+        <Route path="/subscription-main" element={<ProtectedRoute><SubscriptionMainPage /></ProtectedRoute>} />
+        <Route path="/study-logs"        element={<ProtectedRoute><StudyLogPage /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   )

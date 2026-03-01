@@ -1,5 +1,5 @@
 import useStudyLogs from '../hooks/useStudyLogs'
-import Layout from '../components/common/Layout'
+import MainLayout from '../components/common/MainLayout'
 import Loading from '../components/common/Loading'
 import ErrorMessage from '../components/common/ErrorMessage'
 import StudyLogForm from '../components/StudyLogForm'
@@ -14,7 +14,7 @@ export default function StudyLogPage() {
   } = useStudyLogs()
 
   return (
-    <Layout>
+    <MainLayout>
       <StudyLogForm onSubmit={handleCreate} />
 
       {isLoading ? (
@@ -34,6 +34,6 @@ export default function StudyLogPage() {
         onSubmit={handleUpdate}
         onClose={() => setEditingLog(null)}
       />
-    </Layout>
+    </MainLayout>
   )
 }

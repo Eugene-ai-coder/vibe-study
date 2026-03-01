@@ -6,6 +6,7 @@ const MENU = [
     items: [
       { label: '가입관리',     to: '/subscriptions' },
       { label: '과금기준',     to: '/bill-std' },
+      { label: '대표가입 관리', to: '/subscription-main' },
       { label: '특수가입관리', to: null },
     ],
   },

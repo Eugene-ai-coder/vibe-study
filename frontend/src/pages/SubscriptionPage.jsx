@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import useSubscription from '../hooks/useSubscription'
-import Layout from '../components/common/Layout'
+import MainLayout from '../components/common/MainLayout'
 import Toast from '../components/common/Toast'
 import SubscriptionSearchBar from '../components/subscription/SubscriptionSearchBar'
 import SubscriptionList from '../components/subscription/SubscriptionList'
@@ -137,7 +137,7 @@ export default function SubscriptionPage() {
   }
 
   return (
-    <Layout maxWidth="max-w-6xl">
+    <MainLayout>
       <Toast message={successMsg}    type="success" onClose={() => setSuccessMsg(null)} />
       <Toast message={serverError}   type="error"   onClose={() => setServerError(null)} />
 
@@ -171,6 +171,6 @@ export default function SubscriptionPage() {
         onUpdate={onUpdate}
         onDelete={onDelete}
       />
-    </Layout>
+    </MainLayout>
   )
 }

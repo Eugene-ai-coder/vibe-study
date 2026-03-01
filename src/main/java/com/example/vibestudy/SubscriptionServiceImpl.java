@@ -11,11 +11,14 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     private final SubscriptionRepository repository;
     private final BillStdRepository billStdRepository;
+    private final SubscriptionMainRepository subscriptionMainRepository;
 
     public SubscriptionServiceImpl(SubscriptionRepository repository,
-                                   BillStdRepository billStdRepository) {
+                                   BillStdRepository billStdRepository,
+                                   SubscriptionMainRepository subscriptionMainRepository) {
         this.repository = repository;
         this.billStdRepository = billStdRepository;
+        this.subscriptionMainRepository = subscriptionMainRepository;
     }
 
     @Override
@@ -82,6 +85,10 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         if (billStdCount > 0) {
             throw new ResponseStatusException(
                 HttpStatus.CONFLICT, "과금기준이 존재하는 가입은 삭제할 수 없습니다.");
+        }
+        if (subscriptionMainRepository.existsBySubsId(subsId)) {
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT, "대표가입정보가 존재하는 가입은 삭제할 수 없습니다.");
         }
         repository.deleteById(subsId);
     }
