@@ -68,3 +68,54 @@ private LocalDateTime updatedDt;
 | 강조(Primary) | `#2563EB` |
 | 카드 배경 | `white` + `rounded-lg` + 연한 그림자 |
 | 입력 테두리 | `border-gray-300` |
+
+---
+
+## 3. 에러/알림 메시지 표시 표준
+
+### 3.1 상황별 표시 방식
+
+| 상황 | 방식 | 컴포넌트 |
+|---|---|---|
+| 액션 결과 피드백 (저장·변경·삭제·조회 성공·실패) | **Toast** — 상단 중앙 고정, 3초 자동소멸 | `<Toast>` |
+| 폼 입력 유효성 오류 (클라이언트) | **Inline text** — 필드/조건 영역 하단 | `<p className="text-sm text-red-600">` |
+| 서버 validation 오류 (배열 응답) | **Inline 에러 박스** — 폼 상단 | `<div className="bg-red-50 border border-red-200 ..."><ul>` |
+| 파괴적 액션 확인 (삭제 등) | **ConfirmDialog** — 모달 오버레이 | `<ConfirmDialog>` |
+| 페이지 초기 데이터 로드 실패 | **ErrorMessage** — 재시도 버튼 포함 | `<ErrorMessage>` |
+
+### 3.2 Toast 사용 규칙
+
+```jsx
+// 페이지 state 선언
+const [errorMsg, setErrorMsg]   = useState(null)  // 에러
+const [successMsg, setSuccessMsg] = useState(null) // 성공
+
+// JSX 배치 (MainLayout 바로 아래 첫 번째 위치)
+<Toast message={successMsg} type="success" onClose={() => setSuccessMsg(null)} />
+<Toast message={errorMsg}   type="error"   onClose={() => setErrorMsg(null)} />
+```
+
+- 변수명: `errorMsg` / `successMsg` 단일 표준 (다른 명칭 금지)
+- `clearMessages()` 헬퍼로 액션 시작 시 초기화
+- duration: 3초 (Toast 컴포넌트 기본값)
+
+### 3.3 ConfirmDialog 사용 규칙
+
+```jsx
+const [confirmOpen, setConfirmOpen] = useState(false)
+
+// 삭제 버튼
+<button onClick={() => setConfirmOpen(true)}>삭제</button>
+
+// Dialog
+{confirmOpen && (
+  <ConfirmDialog
+    message="삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+    onConfirm={() => { setConfirmOpen(false); handleDelete() }}
+    onCancel={() => setConfirmOpen(false)}
+  />
+)}
+```
+
+- 브라우저 기본 `confirm()` 사용 금지
+- 위험 액션(삭제) 확인 시 반드시 `ConfirmDialog` 사용

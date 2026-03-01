@@ -42,7 +42,7 @@ export default function SubscriptionPage() {
   const [formData, setFormData]         = useState(EMPTY_FORM)
   const [keyword, setKeyword]           = useState('')
   const [searchType, setSearchType]     = useState('SUBS_ID')
-  const [serverError, setServerError]   = useState(null)
+  const [errorMsg, setErrorMsg]     = useState(null)
   const [successMsg, setSuccessMsg]     = useState(null)
 
   useEffect(() => {
@@ -50,11 +50,11 @@ export default function SubscriptionPage() {
     if (subsId) {
       setKeyword(subsId)
       setSearchType('SUBS_ID')
-      handleSearch('SUBS_ID', subsId).then(result => setItems(result)).catch(() => {})
+      handleSearch('SUBS_ID', subsId).then(result => setItems(result)).catch(() => setErrorMsg('조회에 실패했습니다.'))
     }
   }, [])
 
-  const clearMessages = () => { setServerError(null); setSuccessMsg(null) }
+  const clearMessages = () => { setErrorMsg(null); setSuccessMsg(null) }
 
   const isRowSelected = Boolean(selectedSubs)
 
@@ -67,7 +67,7 @@ export default function SubscriptionPage() {
       setSelectedSubs(null)
       setFormData(EMPTY_FORM)
     } catch {
-      setServerError('조회에 실패했습니다.')
+      setErrorMsg('조회에 실패했습니다.')
     }
   }
 
@@ -86,7 +86,7 @@ export default function SubscriptionPage() {
   const onRegister = async () => {
     clearMessages()
     if (!formData.subsId.trim()) {
-      setServerError('가입ID는 필수값입니다.')
+      setErrorMsg('가입ID는 필수값입니다.')
       return
     }
     try {
@@ -97,7 +97,7 @@ export default function SubscriptionPage() {
       setSuccessMsg('등록이 완료되었습니다.')
     } catch (err) {
       const status = err?.response?.status
-      setServerError(status === 400
+      setErrorMsg(status === 400
         ? (err?.response?.data?.message || '이미 등록된 가입ID입니다.')
         : '등록에 실패했습니다.')
     }
@@ -106,7 +106,7 @@ export default function SubscriptionPage() {
   // ── 변경 ──
   const onUpdate = async () => {
     clearMessages()
-    if (!isRowSelected) { setServerError('가입을 선택해 주세요.'); return }
+    if (!isRowSelected) { setErrorMsg('가입을 선택해 주세요.'); return }
     try {
       const updated = await handleUpdate(selectedSubs.subsId, toRequestDto(formData))
       setItems(prev => prev.map(item => item.subsId === updated.subsId ? updated : item))
@@ -114,14 +114,14 @@ export default function SubscriptionPage() {
       setFormData(toFormData(updated))
       setSuccessMsg('변경이 완료되었습니다.')
     } catch {
-      setServerError('변경에 실패했습니다.')
+      setErrorMsg('변경에 실패했습니다.')
     }
   }
 
   // ── 삭제 ──
   const onDelete = async () => {
     clearMessages()
-    if (!isRowSelected) { setServerError('가입을 선택해 주세요.'); return }
+    if (!isRowSelected) { setErrorMsg('가입을 선택해 주세요.'); return }
     try {
       await handleDelete(selectedSubs.subsId)
       setItems(prev => prev.filter(item => item.subsId !== selectedSubs.subsId))
@@ -130,7 +130,7 @@ export default function SubscriptionPage() {
       setSuccessMsg('삭제가 완료되었습니다.')
     } catch (err) {
       const status = err?.response?.status
-      setServerError(status === 409
+      setErrorMsg(status === 409
         ? '과금기준이 존재하는 가입은 삭제할 수 없습니다.'
         : '삭제에 실패했습니다.')
     }
@@ -139,7 +139,7 @@ export default function SubscriptionPage() {
   return (
     <MainLayout>
       <Toast message={successMsg}    type="success" onClose={() => setSuccessMsg(null)} />
-      <Toast message={serverError}   type="error"   onClose={() => setServerError(null)} />
+      <Toast message={errorMsg}   type="error"   onClose={() => setErrorMsg(null)} />
 
       <div className="space-y-4 pb-20">
         <h1 className="text-xl font-bold text-gray-800">가입 관리</h1>

@@ -53,15 +53,15 @@ export default function BillStdPage() {
   const [formData, setFormData]             = useState(EMPTY_FORM)
   const [keyword, setKeyword]               = useState('')
   const [searchType, setSearchType]         = useState('subsId')
-  const [serverError, setServerError]       = useState(null)
-  const [successMessage, setSuccessMessage] = useState(null)
+  const [errorMsg, setErrorMsg]   = useState(null)
+  const [successMsg, setSuccessMsg] = useState(null)
 
-  const clearMessages = () => { setServerError(null); setSuccessMessage(null) }
+  const clearMessages = () => { setErrorMsg(null); setSuccessMsg(null) }
 
   const handleSearch = async () => {
     clearMessages()
     if (!keyword.trim()) {
-      setServerError('검색어를 입력해 주세요.')
+      setErrorMsg('검색어를 입력해 주세요.')
       return
     }
     try {
@@ -69,10 +69,10 @@ export default function BillStdPage() {
         ? await searchBySubsId(keyword.trim())
         : await searchById(keyword.trim())
       setFormData(toFormData(found))
-      setSuccessMessage('조회가 완료되었습니다.')
+      setSuccessMsg('조회가 완료되었습니다.')
     } catch (err) {
       const status = err?.response?.status
-      setServerError(status === 404 ? '조회 결과가 없습니다.' : '서버와 연결할 수 없습니다.')
+      setErrorMsg(status === 404 ? '조회 결과가 없습니다.' : '서버와 연결할 수 없습니다.')
       setFormData(EMPTY_FORM)
     }
   }
@@ -87,34 +87,34 @@ export default function BillStdPage() {
     try {
       const created = await handleCreate(toRequestDto(formData))
       setFormData(toFormData(created))
-      setSuccessMessage('저장이 완료되었습니다.')
+      setSuccessMsg('저장이 완료되었습니다.')
     } catch {
-      setServerError('저장에 실패했습니다.')
+      setErrorMsg('저장에 실패했습니다.')
     }
   }
 
   const handleChange = async () => {
-    if (!formData.billStdId) { setServerError('조회 후 변경할 수 있습니다.'); return }
+    if (!formData.billStdId) { setErrorMsg('조회 후 변경할 수 있습니다.'); return }
     clearMessages()
     try {
       const updated = await handleUpdate(formData.billStdId, toRequestDto(formData))
       setFormData(toFormData(updated))
-      setSuccessMessage('변경이 완료되었습니다.')
+      setSuccessMsg('변경이 완료되었습니다.')
     } catch {
-      setServerError('변경에 실패했습니다.')
+      setErrorMsg('변경에 실패했습니다.')
     }
   }
 
   const handleDeleteClick = async () => {
-    if (!formData.billStdId) { setServerError('조회 후 삭제할 수 있습니다.'); return }
+    if (!formData.billStdId) { setErrorMsg('조회 후 삭제할 수 있습니다.'); return }
     clearMessages()
     try {
       await handleDelete(formData.billStdId)
       setFormData(EMPTY_FORM)
-      setSuccessMessage('삭제가 완료되었습니다.')
+      setSuccessMsg('삭제가 완료되었습니다.')
     } catch (err) {
       const status = err?.response?.status
-      setServerError(
+      setErrorMsg(
         status === 409
           ? '다른 이력이 존재하여 삭제할 수 없습니다.'
           : '삭제에 실패했습니다.'
@@ -124,8 +124,8 @@ export default function BillStdPage() {
 
   return (
     <MainLayout>
-      <Toast message={successMessage} type="success" onClose={() => setSuccessMessage(null)} />
-      <Toast message={serverError}    type="error"   onClose={() => setServerError(null)} />
+      <Toast message={successMsg} type="success" onClose={() => setSuccessMsg(null)} />
+      <Toast message={errorMsg}   type="error"   onClose={() => setErrorMsg(null)} />
 
       <div className="space-y-4 pb-20">
         <h1 className="text-xl font-bold text-gray-800">가입별 과금기준 관리</h1>

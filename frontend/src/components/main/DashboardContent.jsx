@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { searchSubscriptions } from '../../api/subscriptionApi'
+import Toast from '../common/Toast'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts'
@@ -25,10 +26,11 @@ function getRecentMonths(data) {
 
 export default function DashboardContent() {
   const [items, setItems] = useState([])
+  const [errorMsg, setErrorMsg] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
-    searchSubscriptions().then(setItems).catch(() => {})
+    searchSubscriptions().then(setItems).catch(() => setErrorMsg('대시보드 데이터를 불러오지 못했습니다.'))
   }, [])
 
   const total      = items.length
@@ -47,6 +49,7 @@ export default function DashboardContent() {
 
   return (
     <div className="space-y-6">
+      <Toast message={errorMsg} type="error" onClose={() => setErrorMsg(null)} />
       <h1 className="text-xl font-bold text-gray-800">대시보드</h1>
 
       {/* 현황 카드 */}

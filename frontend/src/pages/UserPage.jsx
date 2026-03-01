@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getUsers, register } from '../api/authApi'
 import MainLayout from '../components/common/MainLayout'
+import Toast from '../components/common/Toast'
 
 const EMPTY_FORM = { userId: '', nickname: '', password: '', email: '' }
 
@@ -9,8 +10,8 @@ const STATUS_LABEL = { 1: '활성', 2: '정지', 0: '탈퇴' }
 export default function UserPage() {
   const [users, setUsers] = useState([])
   const [form, setForm] = useState(EMPTY_FORM)
-  const [errorMsg, setErrorMsg] = useState('')
-  const [successMsg, setSuccessMsg] = useState('')
+  const [errorMsg, setErrorMsg] = useState(null)
+  const [successMsg, setSuccessMsg] = useState(null)
 
   const fetchUsers = async () => {
     try {
@@ -28,8 +29,8 @@ export default function UserPage() {
   }
 
   const handleRegister = async () => {
-    setErrorMsg('')
-    setSuccessMsg('')
+    setErrorMsg(null)
+    setSuccessMsg(null)
     try {
       await register(form)
       setSuccessMsg('사용자가 등록되었습니다.')
@@ -42,6 +43,9 @@ export default function UserPage() {
 
   return (
     <MainLayout>
+      <Toast message={successMsg} type="success" onClose={() => setSuccessMsg(null)} />
+      <Toast message={errorMsg}   type="error"   onClose={() => setErrorMsg(null)} />
+
       <div className="space-y-6">
         <h1 className="text-xl font-bold text-gray-800">사용자 관리</h1>
 
@@ -100,9 +104,6 @@ export default function UserPage() {
               </div>
             ))}
           </div>
-
-          {errorMsg && <p className="mt-3 text-sm text-red-600">{errorMsg}</p>}
-          {successMsg && <p className="mt-3 text-sm text-green-600">{successMsg}</p>}
 
           <div className="mt-4 flex justify-end">
             <button
