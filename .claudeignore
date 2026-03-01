@@ -1,0 +1,15 @@
+# Maven 빌드 산출물
+target/
+
+# Frontend 빌드 산출물
+frontend/dist/
+
+# 의존성
+frontend/node_modules/
+
+# 세션 데이터
+sessions/
+data/
+
+# Maven wrapper 캐시
+.mvn/wrapper/
