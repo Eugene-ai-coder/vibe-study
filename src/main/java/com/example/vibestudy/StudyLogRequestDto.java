@@ -14,8 +14,12 @@ public class StudyLogRequestDto {
     @NotNull(message = "날짜를 선택해주세요.")
     private LocalDate date;
 
+    private String createdBy;
+
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
     public LocalDate getDate() { return date; }
     public void setDate(LocalDate date) { this.date = date; }
+    public String getCreatedBy() { return createdBy; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
 }

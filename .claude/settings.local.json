@@ -2,7 +2,20 @@
   "permissions": {
     "allow": [
       "Bash(npm install recharts)",
-      "Bash(gh --version)"
+      "Bash(gh --version)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/api/logs)",
+      "Bash(curl -v -X POST http://localhost:8080/api/logs -H \"Content-Type: application/json\" -d '{\"\"content\"\":\"\"테스트 학습 내용\"\",\"\"date\"\":\"\"2026-03-02\"\",\"\"createdBy\"\":\"\"QA\"\"}')",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\" -X POST http://localhost:8080/api/logs -H \"Content-Type: application/json; charset=utf-8\" --data-raw '{\"\"content\"\":\"\"Test study log content\"\",\"\"date\"\":\"\"2026-03-02\"\",\"\"createdBy\"\":\"\"QA\"\"}')",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\" http://localhost:8080/api/logs)",
+      "Bash(__NEW_LINE_2d92e7703e08dc50__ echo \"\")",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\" -X PUT http://localhost:8080/api/logs/1 -H \"Content-Type: application/json; charset=utf-8\" --data-raw '{\"\"content\"\":\"\"Updated study log\"\",\"\"date\"\":\"\"2026-03-02\"\",\"\"createdBy\"\":\"\"QA\"\"}')",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\" -X PUT http://localhost:8080/api/logs/999 -H \"Content-Type: application/json; charset=utf-8\" --data-raw '{\"\"content\"\":\"\"Updated\"\",\"\"date\"\":\"\"2026-03-02\"\",\"\"createdBy\"\":\"\"QA\"\"}')",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\" -X DELETE http://localhost:8080/api/logs/999)",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\" -X DELETE http://localhost:8080/api/logs/1)",
+      "Bash(__NEW_LINE_2a2fa02d7d55707c__ echo \"\")",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\" http://localhost:8080/api/auth/users)",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\" http://localhost:8080/hello)",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\" -X POST http://localhost:8080/api/logs -H \"Content-Type: application/json; charset=utf-8\" --data-raw '{\"\"date\"\":\"\"2026-03-02\"\"}')"
     ]
   }
 }

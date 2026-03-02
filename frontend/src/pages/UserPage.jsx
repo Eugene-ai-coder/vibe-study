@@ -1,44 +1,20 @@
-import { useState, useEffect } from 'react'
-import { getUsers, register } from '../api/authApi'
+import useUser from '../hooks/useUser'
 import MainLayout from '../components/common/MainLayout'
 import Toast from '../components/common/Toast'
-
-const EMPTY_FORM = { userId: '', nickname: '', password: '', email: '' }
 
 const STATUS_LABEL = { 1: '활성', 2: '정지', 0: '탈퇴' }
 
 export default function UserPage() {
-  const [users, setUsers] = useState([])
-  const [form, setForm] = useState(EMPTY_FORM)
-  const [errorMsg, setErrorMsg] = useState(null)
-  const [successMsg, setSuccessMsg] = useState(null)
-
-  const fetchUsers = async () => {
-    try {
-      setUsers(await getUsers())
-    } catch {
-      setErrorMsg('사용자 목록 조회에 실패했습니다.')
-    }
-  }
-
-  useEffect(() => { fetchUsers() }, [])
+  const {
+    users, form, setForm,
+    errorMsg, setErrorMsg,
+    successMsg, setSuccessMsg,
+    handleRegister,
+  } = useUser()
 
   const onFieldChange = (e) => {
     const { name, value } = e.target
     setForm(prev => ({ ...prev, [name]: value }))
-  }
-
-  const handleRegister = async () => {
-    setErrorMsg(null)
-    setSuccessMsg(null)
-    try {
-      await register(form)
-      setSuccessMsg('사용자가 등록되었습니다.')
-      setForm(EMPTY_FORM)
-      fetchUsers()
-    } catch (err) {
-      setErrorMsg(err?.response?.data?.message || '사용자 등록에 실패했습니다.')
-    }
   }
 
   return (
@@ -99,7 +75,7 @@ export default function UserPage() {
                   name={name}
                   value={form[name]}
                   onChange={onFieldChange}
-                  className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full h-8 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"
                 />
               </div>
             ))}
@@ -108,7 +84,7 @@ export default function UserPage() {
           <div className="mt-4 flex justify-end">
             <button
               onClick={handleRegister}
-              className="h-10 px-6 bg-[#2563EB] hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+              className="h-8 px-6 bg-[#2563EB] hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
             >
               등록
             </button>

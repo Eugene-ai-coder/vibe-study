@@ -2,6 +2,7 @@ import { useState } from 'react'
 import useBillStd from '../hooks/useBillStd'
 import MainLayout from '../components/common/MainLayout'
 import Toast from '../components/common/Toast'
+import ConfirmDialog from '../components/common/ConfirmDialog'
 import BillStdSearchBar from '../components/billstd/BillStdSearchBar'
 import BillStdForm from '../components/billstd/BillStdForm'
 import BillStdActionBar from '../components/billstd/BillStdActionBar'
@@ -53,8 +54,9 @@ export default function BillStdPage() {
   const [formData, setFormData]             = useState(EMPTY_FORM)
   const [keyword, setKeyword]               = useState('')
   const [searchType, setSearchType]         = useState('subsId')
-  const [errorMsg, setErrorMsg]   = useState(null)
-  const [successMsg, setSuccessMsg] = useState(null)
+  const [errorMsg, setErrorMsg]       = useState(null)
+  const [successMsg, setSuccessMsg]   = useState(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const clearMessages = () => { setErrorMsg(null); setSuccessMsg(null) }
 
@@ -105,9 +107,13 @@ export default function BillStdPage() {
     }
   }
 
-  const handleDeleteClick = async () => {
+  const handleDeleteClick = () => {
     if (!formData.billStdId) { setErrorMsg('조회 후 삭제할 수 있습니다.'); return }
     clearMessages()
+    setConfirmOpen(true)
+  }
+
+  const executeDelete = async () => {
     try {
       await handleDelete(formData.billStdId)
       setFormData(EMPTY_FORM)
@@ -147,6 +153,14 @@ export default function BillStdPage() {
         onChange={handleChange}
         onDelete={handleDeleteClick}
       />
+
+      {confirmOpen && (
+        <ConfirmDialog
+          message="삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+          onConfirm={() => { setConfirmOpen(false); executeDelete() }}
+          onCancel={() => setConfirmOpen(false)}
+        />
+      )}
     </MainLayout>
   )
 }

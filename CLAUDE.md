@@ -15,10 +15,10 @@
 
 ## 🎨 3. UI/UX 가이드라인
 - **Theme:** 배경색 `#F8FAFC`, 강조색 `#2563EB`
-- **Style:** 카드(흰색, `rounded-lg`, 연한 그림자), 버튼/입력창(높이 `h-10`, `border-gray-300`)
+- **Style:** 카드(흰색, `rounded-lg`, 연한 그림자), 입력/버튼(높이 `h-8`, `border-gray-300`)
 - **Layout:** 상단(조회조건) → 중간(입력폼/그리드) → 하단(플로팅 액션바)
 
-## 📐 4. 공통 표준 (→ 상세: `docs/standards.md` 참조)
-- **시스템필드:** 모든 테이블에 `created_by/dt`(INSERT 시 설정, 이후 불변), `updated_by/dt`(UPDATE 시 자동 설정) 필수
-- **UI 밀도:** 목록 행 `h-7`(28px), 입력 컴포넌트 `h-8`(32px), 텍스트 `text-sm`
-- **레이아웃:** 로그인 화면 제외 모든 메인화면에 `MainLayout`(헤더 고정 + LNB + 본문) 적용
+## 📐 4. 규칙 파일 참조
+- **Frontend 작업 시:** `docs/frontend-rules.md` 읽기
+- **Backend 작업 시:** `docs/backend-rules.md` 읽기
+- **용어 불명확 시:** `docs/glossary.md` 확인

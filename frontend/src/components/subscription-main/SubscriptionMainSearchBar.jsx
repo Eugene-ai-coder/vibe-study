@@ -6,7 +6,6 @@ export default function SubscriptionMainSearchBar({
   searchType, onSearchTypeChange,
   keyword, onKeywordChange,
   onSearch, isLoading,
-  searchError,
 }) {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') onSearch()
@@ -55,9 +54,6 @@ export default function SubscriptionMainSearchBar({
         </button>
       </div>
 
-      {searchError && (
-        <p className="mt-1.5 text-xs text-red-500">{searchError}</p>
-      )}
     </div>
   )
 }

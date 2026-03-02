@@ -5,10 +5,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -16,11 +14,9 @@ public class AuthController {
 
     private static final String SESSION_KEY = "SESSION_USER";
     private final UserService userService;
-    private final UserRepository userRepository;
 
-    public AuthController(UserService userService, UserRepository userRepository) {
+    public AuthController(UserService userService) {
         this.userService = userService;
-        this.userRepository = userRepository;
     }
 
     @PostMapping("/login")
@@ -53,16 +49,6 @@ public class AuthController {
 
     @GetMapping("/users")
     public ResponseEntity<List<Map<String, Object>>> listUsers() {
-        List<Map<String, Object>> users = userRepository.findAll().stream()
-            .map(u -> {
-                Map<String, Object> m = new LinkedHashMap<>();
-                m.put("userId", u.getUserId());
-                m.put("nickname", u.getNickname());
-                m.put("email", u.getEmail());
-                m.put("accountStatus", u.getAccountStatus());
-                return m;
-            })
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok(userService.listUsers());
     }
 }

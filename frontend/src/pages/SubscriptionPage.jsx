@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import useSubscription from '../hooks/useSubscription'
 import MainLayout from '../components/common/MainLayout'
 import Toast from '../components/common/Toast'
+import ConfirmDialog from '../components/common/ConfirmDialog'
 import SubscriptionSearchBar from '../components/subscription/SubscriptionSearchBar'
 import SubscriptionList from '../components/subscription/SubscriptionList'
 import SubscriptionForm from '../components/subscription/SubscriptionForm'
@@ -42,10 +43,12 @@ export default function SubscriptionPage() {
   const [formData, setFormData]         = useState(EMPTY_FORM)
   const [keyword, setKeyword]           = useState('')
   const [searchType, setSearchType]     = useState('SUBS_ID')
-  const [errorMsg, setErrorMsg]     = useState(null)
+  const [errorMsg, setErrorMsg]         = useState(null)
   const [successMsg, setSuccessMsg]     = useState(null)
+  const [confirmOpen, setConfirmOpen]   = useState(false)
 
   useEffect(() => {
+    clearMessages()
     const subsId = searchParams.get('subsId')
     if (subsId) {
       setKeyword(subsId)
@@ -119,9 +122,13 @@ export default function SubscriptionPage() {
   }
 
   // ── 삭제 ──
-  const onDelete = async () => {
+  const onDeleteClick = () => {
     clearMessages()
     if (!isRowSelected) { setErrorMsg('가입을 선택해 주세요.'); return }
+    setConfirmOpen(true)
+  }
+
+  const onDelete = async () => {
     try {
       await handleDelete(selectedSubs.subsId)
       setItems(prev => prev.filter(item => item.subsId !== selectedSubs.subsId))
@@ -169,8 +176,16 @@ export default function SubscriptionPage() {
       <SubscriptionActionBar
         onRegister={onRegister}
         onUpdate={onUpdate}
-        onDelete={onDelete}
+        onDelete={onDeleteClick}
       />
+
+      {confirmOpen && (
+        <ConfirmDialog
+          message="삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+          onConfirm={() => { setConfirmOpen(false); onDelete() }}
+          onCancel={() => setConfirmOpen(false)}
+        />
+      )}
     </MainLayout>
   )
 }

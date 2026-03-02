@@ -5,6 +5,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -51,5 +55,19 @@ public class UserServiceImpl implements UserService {
         user.setCreatedDt(LocalDateTime.now());
         userRepository.save(user);
         return new UserSessionDto(user.getUserId(), user.getNickname(), user.getAccountStatus());
+    }
+
+    @Override
+    public List<Map<String, Object>> listUsers() {
+        return userRepository.findAll().stream()
+            .map(u -> {
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("userId", u.getUserId());
+                m.put("nickname", u.getNickname());
+                m.put("email", u.getEmail());
+                m.put("accountStatus", u.getAccountStatus());
+                return m;
+            })
+            .collect(Collectors.toList());
     }
 }

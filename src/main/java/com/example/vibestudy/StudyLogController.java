@@ -10,43 +10,30 @@ import java.util.List;
 @RequestMapping("/api/logs")
 public class StudyLogController {
 
-    private final StudyLogRepository repository;
+    private final StudyLogService studyLogService;
 
-    public StudyLogController(StudyLogRepository repository) {
-        this.repository = repository;
+    public StudyLogController(StudyLogService studyLogService) {
+        this.studyLogService = studyLogService;
     }
 
     @GetMapping
     public List<StudyLog> getAll() {
-        return repository.findAll();
+        return studyLogService.getAll();
     }
 
     @PostMapping
     public ResponseEntity<StudyLog> create(@Valid @RequestBody StudyLogRequestDto dto) {
-        StudyLog saved = repository.save(toEntity(dto));
-        return ResponseEntity.ok(saved);
+        return ResponseEntity.ok(studyLogService.create(dto));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<StudyLog> update(@PathVariable Long id, @Valid @RequestBody StudyLogRequestDto dto) {
-        return repository.findById(id).map(log -> {
-            log.setContent(dto.getContent());
-            log.setDate(dto.getDate());
-            return ResponseEntity.ok(repository.save(log));
-        }).orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(studyLogService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!repository.existsById(id)) return ResponseEntity.notFound().build();
-        repository.deleteById(id);
+        studyLogService.delete(id);
         return ResponseEntity.noContent().build();
-    }
-
-    private StudyLog toEntity(StudyLogRequestDto dto) {
-        StudyLog log = new StudyLog();
-        log.setContent(dto.getContent());
-        log.setDate(dto.getDate());
-        return log;
     }
 }

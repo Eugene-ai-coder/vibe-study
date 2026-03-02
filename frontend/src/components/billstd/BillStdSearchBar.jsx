@@ -6,7 +6,7 @@ export default function BillStdSearchBar({ keyword, onKeywordChange, searchType,
       <div className="flex items-center gap-3">
         <label className="w-24 shrink-0 text-right text-sm text-gray-500">검색 유형</label>
         <select
-          className="h-10 w-40 border border-gray-300 rounded-md px-3 text-sm text-gray-700
+          className="h-8 w-40 border border-gray-300 rounded-md px-3 text-sm text-gray-700
                      focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
           value={searchType}
           onChange={onSearchTypeChange}
@@ -21,14 +21,14 @@ export default function BillStdSearchBar({ keyword, onKeywordChange, searchType,
           onChange={onKeywordChange}
           onKeyDown={(e) => e.key === 'Enter' && onSearch()}
           placeholder={placeholder}
-          className="flex-1 h-10 border border-gray-300 rounded-md px-3 text-sm
+          className="flex-1 h-8 border border-gray-300 rounded-md px-3 text-sm
                      focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
         />
 
         <button
           onClick={onSearch}
           disabled={isSearching}
-          className="h-10 px-5 bg-[#2563EB] hover:bg-blue-700 disabled:opacity-50
+          className="h-8 px-5 bg-[#2563EB] hover:bg-blue-700 disabled:opacity-50
                      text-white text-sm font-medium rounded-md transition-colors shrink-0"
         >
           {isSearching ? '조회 중...' : '조회'}

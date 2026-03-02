@@ -1,33 +1,39 @@
 import useStudyLogs from '../hooks/useStudyLogs'
 import MainLayout from '../components/common/MainLayout'
+import Toast from '../components/common/Toast'
 import Loading from '../components/common/Loading'
-import ErrorMessage from '../components/common/ErrorMessage'
-import StudyLogForm from '../components/StudyLogForm'
-import StudyLogTable from '../components/StudyLogTable'
-import EditModal from '../components/EditModal'
+import StudyLogForm from '../components/studylog/StudyLogForm'
+import StudyLogTable from '../components/studylog/StudyLogTable'
+import EditModal from '../components/studylog/EditModal'
 
 export default function StudyLogPage() {
   const {
-    logs, isLoading, error,
+    logs, isLoading, errorMsg, successMsg,
+    setErrorMsg, setSuccessMsg,
     editingLog, setEditingLog,
-    fetchLogs, handleCreate, handleDelete, handleUpdate,
+    handleCreate, handleDelete, handleUpdate,
   } = useStudyLogs()
 
   return (
     <MainLayout>
-      <StudyLogForm onSubmit={handleCreate} />
+      <Toast message={successMsg} type="success" onClose={() => setSuccessMsg(null)} />
+      <Toast message={errorMsg} type="error" onClose={() => setErrorMsg(null)} />
 
-      {isLoading ? (
-        <Loading />
-      ) : error ? (
-        <ErrorMessage message={error} onRetry={fetchLogs} />
-      ) : (
-        <StudyLogTable
-          logs={logs}
-          onDelete={handleDelete}
-          onEditClick={setEditingLog}
-        />
-      )}
+      <div className="space-y-4 pb-20">
+        <h1 className="text-xl font-bold text-gray-800">학습 로그</h1>
+
+        <StudyLogForm onSubmit={handleCreate} />
+
+        {isLoading ? (
+          <Loading />
+        ) : (
+          <StudyLogTable
+            logs={logs}
+            onDelete={handleDelete}
+            onEditClick={setEditingLog}
+          />
+        )}
+      </div>
 
       <EditModal
         log={editingLog}

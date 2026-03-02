@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import ConfirmDialog from './common/ConfirmDialog'
+import ConfirmDialog from '../common/ConfirmDialog'
 
 export default function StudyLogItem({ log, onEditClick, onDelete }) {
   const [confirmOpen, setConfirmOpen] = useState(false)

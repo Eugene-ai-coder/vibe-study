@@ -26,7 +26,7 @@ const EXAMPLE = {
 
 function Field({ label, name, value, readOnly = false, required = false, onChange, options }) {
   const inputClass = [
-    'flex-1 h-10 border rounded-md px-3 text-sm transition-colors',
+    'flex-1 h-8 border rounded-md px-3 text-sm transition-colors',
     readOnly
       ? 'bg-gray-50 text-gray-400 cursor-default border-gray-300'
       : 'bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600',

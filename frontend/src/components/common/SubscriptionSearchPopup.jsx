@@ -1,25 +1,13 @@
 import { useState } from 'react'
-import { searchSubscriptions } from '../../api/subscriptionApi'
+import useSubscriptionSearch from '../../hooks/useSubscriptionSearch'
 
 export default function SubscriptionSearchPopup({ isOpen, onClose, onSelect }) {
   const [keyword, setKeyword] = useState('')
-  const [results, setResults] = useState([])
-  const [isSearching, setIsSearching] = useState(false)
+  const { results, isSearching, search } = useSubscriptionSearch()
 
   if (!isOpen) return null
 
-  const handleSearch = async () => {
-    if (!keyword.trim()) return
-    setIsSearching(true)
-    try {
-      const data = await searchSubscriptions('SUBS_ID', keyword.trim())
-      setResults(data)
-    } catch {
-      setResults([])
-    } finally {
-      setIsSearching(false)
-    }
-  }
+  const handleSearch = () => search(keyword)
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handleSearch()

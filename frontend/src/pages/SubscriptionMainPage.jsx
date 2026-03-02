@@ -29,29 +29,32 @@ const toFormData = (item) => ({
 export default function SubscriptionMainPage() {
   const { isLoading, fetchList, handleSave } = useSubscriptionMain()
 
-  const [svcNm, setSvcNm]             = useState('전체')
-  const [searchType, setSearchType]   = useState('가입ID')
-  const [keyword, setKeyword]         = useState('')
-  const [searchError, setSearchError] = useState(null)
+  const [svcNm, setSvcNm]           = useState('전체')
+  const [searchType, setSearchType] = useState('가입ID')
+  const [keyword, setKeyword]       = useState('')
 
-  const [items, setItems]             = useState([])
-  const [selected, setSelected]       = useState(null)
-  const [formData, setFormData]       = useState(EMPTY_FORM)
+  const [items, setItems]           = useState([])
+  const [selected, setSelected]     = useState(null)
+  const [formData, setFormData]     = useState(EMPTY_FORM)
 
-  const [popupOpen, setPopupOpen]     = useState(false)
-  const [successMsg, setSuccessMsg]   = useState(null)
-  const [errorMsg, setErrorMsg]       = useState(null)
+  const [popupOpen, setPopupOpen]   = useState(false)
+  const [successMsg, setSuccessMsg] = useState(null)
+  const [errorMsg, setErrorMsg]     = useState(null)
+
+  const getSearchError = () => {
+    if (!keyword.trim()) return '조회조건을 입력해 주세요.'
+    if (keyword.trim().length < 2) return '조회조건은 2자 이상 입력해 주세요.'
+    return null
+  }
 
   const handleSearch = async () => {
-    setSearchError(null)
-    if (!keyword.trim()) {
-      setSearchError('조회조건을 입력해 주세요.')
+    const validationError = getSearchError()
+    if (validationError) {
+      setErrorMsg(validationError)
       return
     }
-    if (keyword.trim().length < 2) {
-      setSearchError('조회조건은 2자 이상 입력해 주세요.')
-      return
-    }
+    setErrorMsg(null)
+    setSuccessMsg(null)
     const params = {
       svcNm:      svcNm !== '전체' ? SVC_MAP[svcNm] : undefined,
       searchType: searchType || undefined,
@@ -137,7 +140,6 @@ export default function SubscriptionMainPage() {
           onKeywordChange={(e) => setKeyword(e.target.value)}
           onSearch={handleSearch}
           isLoading={isLoading}
-          searchError={searchError}
         />
 
         <SubscriptionMainList
