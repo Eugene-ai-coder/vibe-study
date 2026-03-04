@@ -61,7 +61,7 @@ public class SubscriptionMainServiceImpl implements SubscriptionMainService {
 
         repository.findActiveBySubsId(dto.getSubsId(), now).ifPresent(existing -> {
             existing.setEffEndDt(now);
-            existing.setUpdatedBy(dto.getCreatedBy());
+            existing.setUpdatedBy(SecurityUtils.getCurrentUserId());
             existing.setUpdatedDt(now);
             repository.save(existing);
         });
@@ -73,7 +73,7 @@ public class SubscriptionMainServiceImpl implements SubscriptionMainService {
         sm.setMainSubsId("Y".equals(dto.getMainSubsYn()) ? null : dto.getMainSubsId());
         sm.setEffStartDt(now);
         sm.setEffEndDt(MAX_DT);
-        sm.setCreatedBy(dto.getCreatedBy());
+        sm.setCreatedBy(SecurityUtils.getCurrentUserId());
         sm.setCreatedDt(now);
 
         return toDto(repository.save(sm));

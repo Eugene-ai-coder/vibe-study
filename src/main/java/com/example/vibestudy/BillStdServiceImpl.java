@@ -6,8 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class BillStdServiceImpl implements BillStdService {
@@ -15,8 +15,6 @@ public class BillStdServiceImpl implements BillStdService {
     private static final LocalDateTime DEFAULT_EFF_END_DT =
             LocalDateTime.of(9999, 12, 31, 23, 59, 59);
 
-    private static final DateTimeFormatter ID_FORMATTER =
-            DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
     private final BillStdRepository repository;
 
@@ -92,7 +90,7 @@ public class BillStdServiceImpl implements BillStdService {
         entity.setCntrcAmt(dto.getCntrcAmt());
         entity.setDscAmt(dto.getDscAmt());
         entity.setDailyUnitPrice(dto.getDailyUnitPrice());
-        entity.setCreatedBy(dto.getCreatedBy());
+        entity.setCreatedBy(SecurityUtils.getCurrentUserId());
         entity.setCreatedDt(LocalDateTime.now());
 
         return toDto(repository.save(entity));
@@ -126,7 +124,7 @@ public class BillStdServiceImpl implements BillStdService {
         entity.setCntrcAmt(dto.getCntrcAmt());
         entity.setDscAmt(dto.getDscAmt());
         entity.setDailyUnitPrice(dto.getDailyUnitPrice());
-        entity.setUpdatedBy(dto.getCreatedBy());
+        entity.setUpdatedBy(SecurityUtils.getCurrentUserId());
         entity.setUpdatedDt(LocalDateTime.now());
 
         return toDto(repository.save(entity));
@@ -155,7 +153,7 @@ public class BillStdServiceImpl implements BillStdService {
     }
 
     private String generateId() {
-        return "BS" + LocalDateTime.now().format(ID_FORMATTER);
+        return "BS" + UUID.randomUUID().toString().replace("-", "").substring(0, 17);
     }
 
     private BillStdResponseDto toDto(BillStd e) {

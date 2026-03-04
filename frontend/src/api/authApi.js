@@ -14,3 +14,6 @@ export const register = (data) =>
 
 export const getUsers = () =>
   apiClient.get('/auth/users').then(r => r.data)
+
+export const getUsersPage = (params) =>
+  apiClient.get('/auth/users/page', { params }).then(r => r.data)

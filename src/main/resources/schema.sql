@@ -82,3 +82,80 @@ CREATE TABLE IF NOT EXISTS tb_bill_std
 -- ── 복합 인덱스 : 가입ID + 유효기간 범위 검색 최적화 ──────────
 CREATE INDEX IF NOT EXISTS idx_tb_bill_std_subs_eff
     ON tb_bill_std (subs_id, eff_start_dt, eff_end_dt);
+
+-- ================================================================
+-- 테이블명 : TB_COMMON_CODE (공통코드 헤더)
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_common_code
+(
+    common_code         VARCHAR(50)     NOT NULL,
+    common_code_nm      VARCHAR(100)    NULL,
+    eff_start_dt        TIMESTAMP       NULL,
+    eff_end_dt          TIMESTAMP       DEFAULT '9999-12-31 23:59:59',
+    remark              VARCHAR(500)    NULL,
+    created_by          VARCHAR(50)     NOT NULL,
+    created_dt          TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by          VARCHAR(50)     NULL,
+    updated_dt          TIMESTAMP       NULL,
+    CONSTRAINT pk_tb_common_code PRIMARY KEY (common_code)
+);
+
+-- ================================================================
+-- 테이블명 : TB_COMMON_DTL_CODE (공통상세코드)
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_common_dtl_code
+(
+    common_code         VARCHAR(50)     NOT NULL,
+    common_dtl_code     VARCHAR(50)     NOT NULL,
+    common_dtl_code_nm  VARCHAR(100)    NULL,
+    sort_order          INTEGER         DEFAULT 0,
+    eff_start_dt        TIMESTAMP       NULL,
+    eff_end_dt          TIMESTAMP       DEFAULT '9999-12-31 23:59:59',
+    remark              VARCHAR(500)    NULL,
+    created_by          VARCHAR(50)     NOT NULL,
+    created_dt          TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by          VARCHAR(50)     NULL,
+    updated_dt          TIMESTAMP       NULL,
+    CONSTRAINT pk_tb_common_dtl_code PRIMARY KEY (common_code, common_dtl_code),
+    CONSTRAINT fk_common_dtl_code_hdr FOREIGN KEY (common_code) REFERENCES tb_common_code (common_code)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tb_common_dtl_code_code
+    ON tb_common_dtl_code (common_code, sort_order);
+
+-- ================================================================
+-- 테이블명 : TB_QNA (Q&A 게시글)
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_qna
+(
+    qna_id              VARCHAR(50)     NOT NULL,
+    title               VARCHAR(200)    NULL,
+    content             TEXT            NULL,
+    view_cnt            INTEGER         DEFAULT 0,
+    answer_yn           VARCHAR(1)      DEFAULT 'N',
+    created_by          VARCHAR(50)     NOT NULL,
+    created_dt          TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by          VARCHAR(50)     NULL,
+    updated_dt          TIMESTAMP       NULL,
+    CONSTRAINT pk_tb_qna PRIMARY KEY (qna_id)
+);
+
+-- ================================================================
+-- 테이블명 : TB_QNA_COMMENT (Q&A 댓글)
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_qna_comment
+(
+    comment_id          VARCHAR(50)     NOT NULL,
+    qna_id              VARCHAR(50)     NOT NULL,
+    parent_comment_id   VARCHAR(50)     NULL,
+    content             TEXT            NULL,
+    created_by          VARCHAR(50)     NOT NULL,
+    created_dt          TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by          VARCHAR(50)     NULL,
+    updated_dt          TIMESTAMP       NULL,
+    CONSTRAINT pk_tb_qna_comment PRIMARY KEY (comment_id),
+    CONSTRAINT fk_qna_comment_qna FOREIGN KEY (qna_id) REFERENCES tb_qna (qna_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tb_qna_comment_qna_id
+    ON tb_qna_comment (qna_id);

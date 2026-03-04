@@ -20,6 +20,8 @@ public class RegisterRequestDto {
     @Email
     private String email;
 
+    private String createdBy;
+
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
 
@@ -31,4 +33,7 @@ public class RegisterRequestDto {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public String getCreatedBy() { return createdBy; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
 }

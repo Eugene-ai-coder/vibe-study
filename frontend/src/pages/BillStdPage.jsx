@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import useBillStd from '../hooks/useBillStd'
+import { useAuth } from '../context/AuthContext'
 import MainLayout from '../components/common/MainLayout'
 import Toast from '../components/common/Toast'
 import ConfirmDialog from '../components/common/ConfirmDialog'
@@ -23,7 +24,7 @@ const toFormData = (dto) =>
   )
 
 // 폼 문자열 → API 요청 객체 변환
-const toRequestDto = (form) => ({
+const toRequestDto = (form, userId) => ({
   subsId:               form.subsId               || null,
   billStdRegDt:         form.billStdRegDt         || null,
   svcCd:                form.svcCd                || null,
@@ -46,10 +47,11 @@ const toRequestDto = (form) => ({
   cntrcAmt:             form.cntrcAmt             ? parseFloat(form.cntrcAmt)             : null,
   dscAmt:               form.dscAmt               ? parseFloat(form.dscAmt)               : null,
   dailyUnitPrice:       form.dailyUnitPrice       ? parseFloat(form.dailyUnitPrice)       : null,
-  createdBy:            'SYSTEM',
+  createdBy:            userId ?? 'SYSTEM',
 })
 
 export default function BillStdPage() {
+  const { user } = useAuth()
   const { isSearching, searchBySubsId, searchById, handleCreate, handleUpdate, handleDelete } = useBillStd()
   const [formData, setFormData]             = useState(EMPTY_FORM)
   const [keyword, setKeyword]               = useState('')
@@ -87,11 +89,12 @@ export default function BillStdPage() {
   const handleSave = async () => {
     clearMessages()
     try {
-      const created = await handleCreate(toRequestDto(formData))
+      const created = await handleCreate(toRequestDto(formData, user?.userId))
       setFormData(toFormData(created))
       setSuccessMsg('저장이 완료되었습니다.')
-    } catch {
-      setErrorMsg('저장에 실패했습니다.')
+    } catch (err) {
+      const status = err?.response?.status
+      setErrorMsg(status === 400 ? (err?.response?.data?.message || '입력값을 확인해 주세요.') : '저장에 실패했습니다.')
     }
   }
 
@@ -99,11 +102,12 @@ export default function BillStdPage() {
     if (!formData.billStdId) { setErrorMsg('조회 후 변경할 수 있습니다.'); return }
     clearMessages()
     try {
-      const updated = await handleUpdate(formData.billStdId, toRequestDto(formData))
+      const updated = await handleUpdate(formData.billStdId, toRequestDto(formData, user?.userId))
       setFormData(toFormData(updated))
       setSuccessMsg('변경이 완료되었습니다.')
-    } catch {
-      setErrorMsg('변경에 실패했습니다.')
+    } catch (err) {
+      const status = err?.response?.status
+      setErrorMsg(status === 400 ? (err?.response?.data?.message || '입력값을 확인해 주세요.') : '변경에 실패했습니다.')
     }
   }
 
@@ -133,7 +137,7 @@ export default function BillStdPage() {
       <Toast message={successMsg} type="success" onClose={() => setSuccessMsg(null)} />
       <Toast message={errorMsg}   type="error"   onClose={() => setErrorMsg(null)} />
 
-      <div className="space-y-4 pb-20">
+      <div className="space-y-4">
         <h1 className="text-xl font-bold text-gray-800">가입별 과금기준 관리</h1>
 
         <BillStdSearchBar

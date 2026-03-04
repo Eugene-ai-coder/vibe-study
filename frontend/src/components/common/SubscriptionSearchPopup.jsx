@@ -43,7 +43,7 @@ export default function SubscriptionSearchPopup({ isOpen, onClose, onSelect }) {
           <button
             onClick={handleSearch}
             disabled={isSearching}
-            className="h-8 px-3 bg-[#2563EB] text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
+            className="h-8 px-3 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
           >
             조회
           </button>

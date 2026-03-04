@@ -58,7 +58,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         entity.setSubsStatusCd(dto.getSubsStatusCd());
         entity.setSubsDt(dto.getSubsDt());
         entity.setChgDt(dto.getChgDt());
-        entity.setCreatedBy(dto.getCreatedBy());
+        entity.setCreatedBy(SecurityUtils.getCurrentUserId());
         entity.setCreatedDt(LocalDateTime.now());
         return toDto(repository.save(entity));
     }
@@ -73,7 +73,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         entity.setSubsStatusCd(dto.getSubsStatusCd());
         entity.setSubsDt(dto.getSubsDt());
         entity.setChgDt(dto.getChgDt());
-        entity.setUpdatedBy(dto.getCreatedBy());
+        entity.setUpdatedBy(SecurityUtils.getCurrentUserId());
         entity.setUpdatedDt(LocalDateTime.now());
         return toDto(repository.save(entity));
     }

@@ -96,7 +96,8 @@ private String generateId() {
 |---|---|---|
 | 과금기준 (BillStd) | `BS` | `BS20240315143022123` |
 | 대표가입 (SubscriptionMain) | `SM` | `SM20240315143022123` |
-| (신규 도메인 추가 시 여기에 등록) | | |
+| Q&A 게시글 (Qna)            | `QNA` | `QNA20240315143022123` |
+| Q&A 댓글 (QnaComment)       | `CMT` | `CMT20240315143022123` |
 
 UUID 사용 금지.
 

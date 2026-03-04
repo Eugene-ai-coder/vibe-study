@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import useSubscription from '../hooks/useSubscription'
+import { useAuth } from '../context/AuthContext'
 import MainLayout from '../components/common/MainLayout'
 import Toast from '../components/common/Toast'
 import ConfirmDialog from '../components/common/ConfirmDialog'
@@ -24,7 +25,7 @@ const toFormData = (dto) => ({
   chgDt:         dto.chgDt         ? dto.chgDt.slice(0, 16) : '',
 })
 
-const toRequestDto = (form) => ({
+const toRequestDto = (form, userId) => ({
   subsId:       form.subsId       || null,
   subsNm:       form.subsNm       || null,
   svcNm:        form.svcNm        || null,
@@ -32,10 +33,11 @@ const toRequestDto = (form) => ({
   subsStatusCd: form.subsStatusCd || null,
   subsDt:       form.subsDt       || null,
   chgDt:        form.chgDt        || null,
-  createdBy:    'SYSTEM',
+  createdBy:    userId ?? 'SYSTEM',
 })
 
 export default function SubscriptionPage() {
+  const { user } = useAuth()
   const { isSearching, handleSearch, handleCreate, handleUpdate, handleDelete } = useSubscription()
   const [searchParams] = useSearchParams()
   const [items, setItems]               = useState([])
@@ -93,7 +95,7 @@ export default function SubscriptionPage() {
       return
     }
     try {
-      const created = await handleCreate(toRequestDto(formData))
+      const created = await handleCreate(toRequestDto(formData, user?.userId))
       setItems(prev => [...prev, created])
       setSelectedSubs(created)
       setFormData(toFormData(created))
@@ -111,7 +113,7 @@ export default function SubscriptionPage() {
     clearMessages()
     if (!isRowSelected) { setErrorMsg('가입을 선택해 주세요.'); return }
     try {
-      const updated = await handleUpdate(selectedSubs.subsId, toRequestDto(formData))
+      const updated = await handleUpdate(selectedSubs.subsId, toRequestDto(formData, user?.userId))
       setItems(prev => prev.map(item => item.subsId === updated.subsId ? updated : item))
       setSelectedSubs(updated)
       setFormData(toFormData(updated))
@@ -148,7 +150,7 @@ export default function SubscriptionPage() {
       <Toast message={successMsg}    type="success" onClose={() => setSuccessMsg(null)} />
       <Toast message={errorMsg}   type="error"   onClose={() => setErrorMsg(null)} />
 
-      <div className="space-y-4 pb-20">
+      <div className="space-y-4">
         <h1 className="text-xl font-bold text-gray-800">가입 관리</h1>
 
         <SubscriptionSearchBar

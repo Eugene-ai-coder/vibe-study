@@ -12,8 +12,8 @@ export default function SubscriptionMainSearchBar({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
-      <div className="flex items-center gap-3">
+    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+      <div className="flex items-center gap-2">
         <label className="text-xs text-gray-500 whitespace-nowrap">서비스</label>
         <select
           value={svcNm}
@@ -42,18 +42,17 @@ export default function SubscriptionMainSearchBar({
           onChange={onKeywordChange}
           onKeyDown={handleKeyDown}
           placeholder="2자 이상 입력"
-          className="h-8 flex-1 border border-gray-300 rounded px-2 text-sm focus:outline-none focus:border-blue-400"
+          className="w-48 h-8 border border-gray-300 rounded px-2 text-sm focus:outline-none focus:border-blue-400"
         />
 
         <button
           onClick={onSearch}
           disabled={isLoading}
-          className="h-8 px-4 bg-[#2563EB] text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
+          className="h-8 px-4 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
         >
           조회
         </button>
       </div>
-
     </div>
   )
 }

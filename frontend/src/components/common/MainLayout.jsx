@@ -14,7 +14,7 @@ export default function MainLayout({ children }) {
   return (
     <div className="flex flex-col min-h-screen">
       {/* 헤더 */}
-      <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
+      <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-10">
         <span className="font-bold text-gray-800">종량가입관리 시스템</span>
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-600">

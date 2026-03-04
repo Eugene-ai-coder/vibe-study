@@ -10,7 +10,7 @@ export default function Toast({ message, type = 'success', onClose }) {
   if (!message) return null
 
   const colorClass = type === 'success'
-    ? 'bg-[#2563EB] text-white'
+    ? 'bg-blue-600 text-white'
     : 'bg-red-500 text-white'
 
   return (

@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import useSubscriptionMain from '../hooks/useSubscriptionMain'
+import { useAuth } from '../context/AuthContext'
 import MainLayout from '../components/common/MainLayout'
 import Toast from '../components/common/Toast'
 import SubscriptionSearchPopup from '../components/common/SubscriptionSearchPopup'
@@ -9,6 +10,7 @@ import SubscriptionMainForm from '../components/subscription-main/SubscriptionMa
 import SubscriptionMainActionBar from '../components/subscription-main/SubscriptionMainActionBar'
 
 const SVC_MAP = { 'IDC 전력': '서비스1', 'IDC NW': '서비스2', '비즈넷': '서비스3' }
+const SVC_LABEL_MAP = Object.fromEntries(Object.entries(SVC_MAP).map(([k, v]) => [v, k]))
 
 const EMPTY_FORM = {
   subsId: '',
@@ -27,6 +29,7 @@ const toFormData = (item) => ({
 })
 
 export default function SubscriptionMainPage() {
+  const { user } = useAuth()
   const { isLoading, fetchList, handleSave } = useSubscriptionMain()
 
   const [svcNm, setSvcNm]           = useState('전체')
@@ -36,6 +39,11 @@ export default function SubscriptionMainPage() {
   const [items, setItems]           = useState([])
   const [selected, setSelected]     = useState(null)
   const [formData, setFormData]     = useState(EMPTY_FORM)
+
+  const displayItems = useMemo(
+    () => items.map(item => ({ ...item, svcNm: SVC_LABEL_MAP[item.svcNm] || item.svcNm })),
+    [items]
+  )
 
   const [popupOpen, setPopupOpen]   = useState(false)
   const [successMsg, setSuccessMsg] = useState(null)
@@ -95,7 +103,7 @@ export default function SubscriptionMainPage() {
         subsId:     formData.subsId,
         mainSubsYn: formData.mainSubsYn,
         mainSubsId: formData.mainSubsYn === 'Y' ? null : formData.mainSubsId,
-        createdBy:  'SYSTEM',
+        createdBy:  user?.userId ?? 'SYSTEM',
       })
       setSuccessMsg('저장이 완료되었습니다.')
       // 목록 갱신
@@ -128,7 +136,7 @@ export default function SubscriptionMainPage() {
         onSelect={handlePopupSelect}
       />
 
-      <div className="space-y-4 pb-20">
+      <div className="space-y-4">
         <h1 className="text-xl font-bold text-gray-800">대표가입 관리</h1>
 
         <SubscriptionMainSearchBar
@@ -143,7 +151,7 @@ export default function SubscriptionMainPage() {
         />
 
         <SubscriptionMainList
-          items={items}
+          items={displayItems}
           selectedId={selected?.subsId}
           onRowClick={handleRowClick}
         />
