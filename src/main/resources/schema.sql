@@ -159,3 +159,40 @@ CREATE TABLE IF NOT EXISTS tb_qna_comment
 
 CREATE INDEX IF NOT EXISTS idx_tb_qna_comment_qna_id
     ON tb_qna_comment (qna_id);
+
+-- ================================================================
+-- 테이블명 : TB_SPECIAL_SUBSCRIPTION (특수가입)
+-- 설명     : 가입별 특수 과금 기준 관리
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_special_subscription
+(
+    /* ── Key (복합 PK) ──────────────────────────────── */
+    subs_bill_std_id        VARCHAR(20)    NOT NULL,               -- 가입별과금기준ID
+    eff_sta_dt              VARCHAR(8)     NOT NULL,               -- 유효시작일 (YYYYMMDD)
+
+    /* ── 기본 정보 ──────────────────────────────────── */
+    subs_id                 VARCHAR(20)    NOT NULL,               -- 가입ID
+    svc_cd                  VARCHAR(10)    NULL,                   -- 서비스코드
+    eff_end_dt              VARCHAR(8)     DEFAULT '99991231',     -- 유효종료일 (YYYYMMDD)
+    last_eff_yn             VARCHAR(1)     NULL,                   -- 최종유효여부
+    stat_cd                 VARCHAR(10)    NULL,                   -- 상태코드
+
+    /* ── 약정 정보 ──────────────────────────────────── */
+    cntrc_cap_kmh           NUMERIC(18,4)  NULL,                   -- 계약용량(kMh)
+    cntrc_amt               NUMERIC(18,2)  NULL,                   -- 계약금액
+    dsc_rt                  NUMERIC(18,4)  NULL,                   -- 할인율
+
+    /* ── 비고 ───────────────────────────────────────── */
+    rmk                     VARCHAR(500)   NULL,                   -- 비고
+
+    /* ── System Fields ──────────────────────────────── */
+    created_by              VARCHAR(50)    NOT NULL,               -- 생성자ID
+    created_dt              TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by              VARCHAR(50)    NULL,                   -- 수정자ID
+    updated_dt              TIMESTAMP      NULL,
+
+    CONSTRAINT pk_tb_special_subscription PRIMARY KEY (subs_bill_std_id, eff_sta_dt)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tb_special_subscription_subs
+    ON tb_special_subscription (subs_id);

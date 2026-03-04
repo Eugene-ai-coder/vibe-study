@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 
 const MENU = [
@@ -8,7 +9,7 @@ const MENU = [
       { label: '가입관리',     to: '/subscriptions' },
       { label: '과금기준',     to: '/bill-std' },
       { label: '대표가입 관리', to: '/subscription-main' },
-      { label: '특수가입관리', to: null },
+      { label: '특수가입관리', to: '/special-subscription' },
     ],
   },
   {
@@ -26,8 +27,41 @@ const MENU = [
   },
 ]
 
+function findGroupForPath(pathname) {
+  for (const entry of MENU) {
+    if (entry.group && entry.items?.some(item => item.to === pathname)) {
+      return entry.group
+    }
+  }
+  return null
+}
+
 export default function Sidebar() {
   const location = useLocation()
+
+  const [openGroups, setOpenGroups] = useState(() => {
+    const active = findGroupForPath(location.pathname)
+    return active ? new Set([active]) : new Set()
+  })
+
+  useEffect(() => {
+    const active = findGroupForPath(location.pathname)
+    if (active) {
+      setOpenGroups(prev => {
+        if (prev.has(active)) return prev
+        return new Set([...prev, active])
+      })
+    }
+  }, [location.pathname])
+
+  const toggleGroup = useCallback((group) => {
+    setOpenGroups(prev => {
+      const next = new Set(prev)
+      if (next.has(group)) next.delete(group)
+      else next.add(group)
+      return next
+    })
+  }, [])
 
   const renderNavLink = (label, to) =>
     to ? (
@@ -63,15 +97,23 @@ export default function Sidebar() {
             {renderNavLink(label, to)}
           </div>
         ))}
-        {/* 그룹 항목 */}
-        {MENU.filter(m => m.group).map(({ group, items }) => (
-          <div key={group} className="mb-4">
-            <p className="px-4 py-1 text-sm font-semibold text-gray-500 uppercase tracking-wider">
-              {group}
-            </p>
-            {items.map(({ label, to }) => renderNavLink(label, to))}
-          </div>
-        ))}
+        {/* 그룹 항목 (아코디언) */}
+        {MENU.filter(m => m.group).map(({ group, items }) => {
+          const isOpen = openGroups.has(group)
+          return (
+            <div key={group} className="mb-1">
+              <button
+                type="button"
+                onClick={() => toggleGroup(group)}
+                className="w-full flex items-center justify-between px-4 py-2 text-sm font-semibold text-gray-500 uppercase tracking-wider hover:bg-gray-50 transition-colors"
+              >
+                <span>{group}</span>
+                <span className="text-xs text-gray-400">{isOpen ? '▾' : '▸'}</span>
+              </button>
+              {isOpen && items.map(({ label, to }) => renderNavLink(label, to))}
+            </div>
+          )
+        })}
       </nav>
     </aside>
   )

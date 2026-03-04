@@ -10,6 +10,7 @@ import StudyLogPage from './pages/StudyLogPage'
 import CommonCodePage from './pages/CommonCodePage'
 import QnaPage from './pages/QnaPage'
 import QnaDetailPage from './pages/QnaDetailPage'
+import SpecialSubscriptionPage from './pages/SpecialSubscriptionPage'
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/qna"     element={<ProtectedRoute><QnaPage /></ProtectedRoute>} />
         <Route path="/qna/new" element={<ProtectedRoute><QnaDetailPage /></ProtectedRoute>} />
         <Route path="/qna/:id" element={<ProtectedRoute><QnaDetailPage /></ProtectedRoute>} />
+        <Route path="/special-subscription" element={<ProtectedRoute><SpecialSubscriptionPage /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   )

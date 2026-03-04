@@ -1,0 +1,53 @@
+package com.example.vibestudy;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/special-subscriptions")
+public class SpecialSubscriptionController {
+
+    private final SpecialSubscriptionService service;
+
+    public SpecialSubscriptionController(SpecialSubscriptionService service) {
+        this.service = service;
+    }
+
+    @GetMapping
+    public List<SpecialSubscriptionResponseDto> getAll(
+            @RequestParam(required = false) String subsBillStdId,
+            @RequestParam(required = false) String subsId) {
+        return service.findAll(subsBillStdId, subsId);
+    }
+
+    @GetMapping("/{subsBillStdId}/{effStaDt}")
+    public ResponseEntity<SpecialSubscriptionResponseDto> getById(
+            @PathVariable String subsBillStdId,
+            @PathVariable String effStaDt) {
+        return ResponseEntity.ok(service.findById(subsBillStdId, effStaDt));
+    }
+
+    @PostMapping
+    public ResponseEntity<SpecialSubscriptionResponseDto> create(
+            @RequestBody SpecialSubscriptionRequestDto dto) {
+        return ResponseEntity.status(201).body(service.create(dto));
+    }
+
+    @PutMapping("/{subsBillStdId}/{effStaDt}")
+    public ResponseEntity<SpecialSubscriptionResponseDto> update(
+            @PathVariable String subsBillStdId,
+            @PathVariable String effStaDt,
+            @RequestBody SpecialSubscriptionRequestDto dto) {
+        return ResponseEntity.ok(service.update(subsBillStdId, effStaDt, dto));
+    }
+
+    @DeleteMapping("/{subsBillStdId}/{effStaDt}")
+    public ResponseEntity<Void> delete(
+            @PathVariable String subsBillStdId,
+            @PathVariable String effStaDt) {
+        service.delete(subsBillStdId, effStaDt);
+        return ResponseEntity.noContent().build();
+    }
+}

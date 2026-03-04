@@ -22,7 +22,18 @@
       "Bash(npx vite build)",
       "Read(//tmp/claude/c--dev-vibe-study/tasks/**)",
       "Bash(JAVA_HOME=\"C:/Program Files/Eclipse Adoptium/jdk-17.0.18.8-hotspot\" ./mvnw.cmd spring-boot:run -q)",
-      "Read(//c/Users/tt002/.claude/skills/auto-dev/**)"
+      "Read(//c/Users/tt002/.claude/skills/auto-dev/**)",
+      "Bash(ls \"c:/dev/vibe-study/sessions/2026-03-04_특수가입_관리/\"03_plan*.md)",
+      "Bash(for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30)",
+      "Bash(do if curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/api/auth/me)",
+      "Bash(then echo \"Server is ready!\")",
+      "Bash(exit 0)",
+      "Bash(fi)",
+      "Bash(done)",
+      "Bash(H2_JAR=\"/c/Users/tt002/.m2/repository/com/h2database/h2/2.2.224/h2-2.2.224.jar\")",
+      "Bash(JAVA_HOME=\"C:/Program Files/Eclipse Adoptium/jdk-17.0.18.8-hotspot\" \"$JAVA_HOME/bin/java\" -cp \"$H2_JAR\" org.h2.tools.Shell -url \"jdbc:h2:file:./data/vibedb;AUTO_SERVER=TRUE\" -user sa -password \"\")",
+      "Bash(\"/c/Program Files/Eclipse Adoptium/jdk-17.0.18.8-hotspot/bin/java\" -cp \"/c/Users/tt002/.m2/repository/com/h2database/h2/2.2.224/h2-2.2.224.jar\" org.h2.tools.Shell -url \"jdbc:h2:file:./data/vibedb;AUTO_SERVER=TRUE\" -user sa -password \"\")",
+      "Bash(__NEW_LINE_3ea1a353c1b78dc5__ echo \"\")"
     ],
     "additionalDirectories": [
       "c:\\dev\\vibe-study\\sessions"

@@ -1,6 +1,6 @@
 #FileLock
-#Sat Feb 28 17:27:27 KST 2026
-server=192.168.50.240\:56207
+#Thu Mar 05 00:31:04 KST 2026
+server=192.168.50.240\:50701
 hostName=LPC-TT002373-105Q
 method=file
-id=19ca35c17ae02ae23f6d8c08361568d4cc95ffa4e19
+id=19cb97953fb72c62af1294ca6d8d3921cab3b04af5a
