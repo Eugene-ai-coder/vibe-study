@@ -1,12 +1,15 @@
 package com.example.vibestudy;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserSessionDto implements Serializable {
 
     private String userId;
     private String nickname;
     private int accountStatus;
+    private List<String> roles = new ArrayList<>();
 
     public UserSessionDto() {}
 
@@ -24,4 +27,7 @@ public class UserSessionDto implements Serializable {
 
     public int getAccountStatus() { return accountStatus; }
     public void setAccountStatus(int accountStatus) { this.accountStatus = accountStatus; }
+
+    public List<String> getRoles() { return roles; }
+    public void setRoles(List<String> roles) { this.roles = roles; }
 }

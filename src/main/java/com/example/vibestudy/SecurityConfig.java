@@ -46,6 +46,9 @@ public class SecurityConfig {
                     "/api/auth/me"
                 ).permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
+                .requestMatchers("/api/menus/tree/my").authenticated()
+                .requestMatchers("/api/menus/**").hasAuthority("ADMIN")
+                .requestMatchers("/api/roles/**").hasAuthority("ADMIN")
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
             )

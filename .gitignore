@@ -37,3 +37,4 @@ Thumbs.db
 # ============================
 data/*.db
 data/*.trace.db
+data/*.lock.db

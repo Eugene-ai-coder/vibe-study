@@ -1,12 +1,19 @@
 {
-  "autoCompact": true,
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
       "Bash(cp:*)",
       "Bash(powershell -File *notify.ps1*)",
-      "Read(C:\\Users\\tt002\\.claude\\skills\\**)",
-      "Agent(*)"
+      "Read(C:\\Users\\USER\\.claude\\skills\\**)",
+      "Agent(*)",
+      "Skill(agent-browser)",
+      "Skill(agent-browser:*)",
+      "Read(//c/Users/USER/.agent-browser/tmp/screenshots/**)",
+      "Bash(cmd //c \"mvnw.cmd spring-boot:run\")",
+      "Bash(ls c:/Users/USER/Projects/vibe-study/mvnw*)",
+      "Bash(bash mvnw spring-boot:run)",
+      "Bash(java -jar .mvn/wrapper/maven-wrapper.jar spring-boot:run)"
     ]
-  }
+  },
+  "autoCompact": true
 }

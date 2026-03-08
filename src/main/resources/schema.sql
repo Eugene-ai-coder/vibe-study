@@ -196,3 +196,68 @@ CREATE TABLE IF NOT EXISTS tb_special_subscription
 
 CREATE INDEX IF NOT EXISTS idx_tb_special_subscription_subs
     ON tb_special_subscription (subs_id);
+
+-- ================================================================
+-- 테이블명 : TB_MENU (메뉴)
+-- 설명     : 사이드바 메뉴 계층 구조 관리
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_menu
+(
+    menu_id             VARCHAR(20)    NOT NULL,               -- 메뉴ID
+    menu_nm             VARCHAR(100)   NOT NULL,               -- 메뉴명
+    menu_url            VARCHAR(200)   NULL,                   -- 메뉴URL
+    parent_menu_id      VARCHAR(20)    NULL,                   -- 상위메뉴ID
+    sort_order          INTEGER        DEFAULT 0,              -- 정렬순서
+    use_yn              CHAR(1)        DEFAULT 'Y',            -- 사용여부
+    menu_level          INTEGER        DEFAULT 1,              -- 메뉴레벨
+
+    /* ── System Fields ──────────────────────────────── */
+    created_by          VARCHAR(50)    NOT NULL,               -- 생성자ID
+    created_dt          TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by          VARCHAR(50)    NULL,                   -- 수정자ID
+    updated_dt          TIMESTAMP      NULL,
+
+    CONSTRAINT pk_tb_menu PRIMARY KEY (menu_id),
+    CONSTRAINT fk_tb_menu_parent FOREIGN KEY (parent_menu_id) REFERENCES tb_menu (menu_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tb_menu_parent
+    ON tb_menu (parent_menu_id, sort_order);
+
+-- ================================================================
+-- 테이블명 : TB_USER_ROLE (사용자역할)
+-- 설명     : 사용자-역할 다대다 매핑
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_user_role
+(
+    user_id             VARCHAR(50)    NOT NULL,               -- 사용자ID
+    role_cd             VARCHAR(20)    NOT NULL,               -- 역할코드
+
+    /* ── System Fields ──────────────────────────────── */
+    created_by          VARCHAR(50)    NOT NULL,               -- 생성자ID
+    created_dt          TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by          VARCHAR(50)    NULL,                   -- 수정자ID
+    updated_dt          TIMESTAMP      NULL,
+
+    CONSTRAINT pk_tb_user_role PRIMARY KEY (user_id, role_cd),
+    CONSTRAINT fk_tb_user_role_user FOREIGN KEY (user_id) REFERENCES tb_user (user_id)
+);
+
+-- ================================================================
+-- 테이블명 : TB_MENU_ROLE (메뉴역할)
+-- 설명     : 메뉴-역할 다대다 매핑
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_menu_role
+(
+    menu_id             VARCHAR(20)    NOT NULL,               -- 메뉴ID
+    role_cd             VARCHAR(20)    NOT NULL,               -- 역할코드
+
+    /* ── System Fields ──────────────────────────────── */
+    created_by          VARCHAR(50)    NOT NULL,               -- 생성자ID
+    created_dt          TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by          VARCHAR(50)    NULL,                   -- 수정자ID
+    updated_dt          TIMESTAMP      NULL,
+
+    CONSTRAINT pk_tb_menu_role PRIMARY KEY (menu_id, role_cd),
+    CONSTRAINT fk_tb_menu_role_menu FOREIGN KEY (menu_id) REFERENCES tb_menu (menu_id)
+);

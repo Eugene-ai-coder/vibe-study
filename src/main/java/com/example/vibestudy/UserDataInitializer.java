@@ -1,11 +1,13 @@
 package com.example.vibestudy;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 @Component
+@Order(1)
 public class UserDataInitializer implements CommandLineRunner {
 
     private final UserRepository repo;

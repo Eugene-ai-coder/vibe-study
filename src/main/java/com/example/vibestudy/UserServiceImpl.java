@@ -21,17 +21,24 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
+    private final UserRoleRepository userRoleRepository;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder encoder) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder encoder,
+                           UserRoleRepository userRoleRepository) {
         this.userRepository = userRepository;
         this.encoder = encoder;
+        this.userRoleRepository = userRoleRepository;
     }
 
     @Override
     public UserSessionDto getUserSession(String userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
-        return new UserSessionDto(user.getUserId(), user.getNickname(), user.getAccountStatus());
+        UserSessionDto dto = new UserSessionDto(user.getUserId(), user.getNickname(), user.getAccountStatus());
+        List<String> roles = userRoleRepository.findByUserId(userId)
+            .stream().map(UserRole::getRoleCd).collect(Collectors.toList());
+        dto.setRoles(roles);
+        return dto;
     }
 
     @Override
