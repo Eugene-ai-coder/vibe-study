@@ -77,6 +77,15 @@ public class CommonCodeServiceImpl implements CommonCodeService {
     }
 
     @Override
+    public List<CommonDtlCodeResponseDto> findEffectiveDetails(String commonCode) {
+        LocalDateTime now = LocalDateTime.now();
+        return commonDtlCodeRepository
+                .findByIdCommonCodeAndEffStartDtLessThanEqualAndEffEndDtGreaterThanEqualOrderBySortOrder(
+                        commonCode, now, now)
+                .stream().map(this::toDtlDto).collect(Collectors.toList());
+    }
+
+    @Override
     public CommonDtlCodeResponseDto createDetail(String commonCode, CommonDtlCodeRequestDto dto) {
         CommonDtlCodeId id = new CommonDtlCodeId(commonCode, dto.getCommonDtlCode());
         if (commonDtlCodeRepository.existsById(id)) {

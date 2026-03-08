@@ -175,7 +175,7 @@ CREATE TABLE IF NOT EXISTS tb_special_subscription
     svc_cd                  VARCHAR(10)    NULL,                   -- 서비스코드
     eff_end_dt              VARCHAR(8)     DEFAULT '99991231',     -- 유효종료일 (YYYYMMDD)
     last_eff_yn             VARCHAR(1)     NULL,                   -- 최종유효여부
-    stat_cd                 VARCHAR(10)    NULL,                   -- 상태코드
+    spec_subs_stat_cd       VARCHAR(10)    NULL,                   -- 특수가입상태코드
 
     /* ── 약정 정보 ──────────────────────────────────── */
     cntrc_cap_kmh           NUMERIC(18,4)  NULL,                   -- 계약용량(kMh)

@@ -62,13 +62,7 @@
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">상태</label>
-            <select v-model="formData.subsStatusCd" class="w-full h-8 px-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-400 bg-white">
-              <option value="">선택</option>
-              <option value="ACTIVE">활성</option>
-              <option value="SUSPENDED">정지</option>
-              <option value="TERMINATED">탈퇴</option>
-              <option value="PENDING">미납</option>
-            </select>
+            <CommonCodeSelect common-code="subs_status_cd" v-model="formData.subsStatusCd" />
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">가입일시</label>
@@ -94,7 +88,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { searchSubscriptions, createSubscription, updateSubscription, deleteSubscription } from '../api/subscriptionApi'
@@ -103,20 +97,25 @@ import Toast from '../components/common/Toast.vue'
 import DataGrid from '../components/common/DataGrid.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
+import CommonCodeSelect from '../components/common/CommonCodeSelect.vue'
+import { useCommonCodeLabel } from '../composables/useCommonCodeLabel'
 
 const auth = useAuthStore()
 const route = useRoute()
 
+const { getLabel } = useCommonCodeLabel(['subs_status_cd'])
+
 const EMPTY_FORM = { subsId: '', subsNm: '', svcNm: '', feeProdNm: '', subsStatusCd: '', subsDt: '', chgDt: '' }
 
-const columns = [
+const columns = computed(() => [
   { key: 'subsId', header: '가입ID', size: 120 },
   { key: 'subsNm', header: '가입명', size: 150 },
   { key: 'svcNm', header: '서비스명', size: 150 },
   { key: 'feeProdNm', header: '요금제명', size: 150 },
-  { key: 'subsStatusCd', header: '상태', size: 80 },
+  { key: 'subsStatusCd', header: '상태', size: 80,
+    cell: { props: ['value'], setup(props) { return () => getLabel('subs_status_cd', props.value) } } },
   { key: 'subsDt', header: '가입일시', size: 160 },
-]
+])
 
 const items = ref([])
 const selectedSubs = ref(null)
@@ -182,16 +181,20 @@ const onRowSelect = (item) => {
   isRowSelected.value = true
 }
 
+const fetchList = async () => {
+  items.value = await searchSubscriptions(searchType.value, keyword.value.trim())
+}
+
 const onRegister = async () => {
   clearMessages()
   if (!formData.subsId.trim()) { errorMsg.value = '가입ID는 필수값입니다.'; return }
   try {
     const created = await createSubscription(toRequestDto())
-    items.value = [...items.value, created]
     selectedSubs.value = created
     Object.assign(formData, toFormData(created))
     isRowSelected.value = true
     successMsg.value = '등록이 완료되었습니다.'
+    await fetchList()
   } catch (err) {
     errorMsg.value = err?.response?.data?.message || '등록에 실패했습니다.'
   }
@@ -202,10 +205,10 @@ const onUpdate = async () => {
   if (!selectedSubs.value) { errorMsg.value = '가입을 선택해 주세요.'; return }
   try {
     const updated = await updateSubscription(selectedSubs.value.subsId, toRequestDto())
-    items.value = items.value.map(i => i.subsId === updated.subsId ? updated : i)
     selectedSubs.value = updated
     Object.assign(formData, toFormData(updated))
     successMsg.value = '변경이 완료되었습니다.'
+    await fetchList()
   } catch { errorMsg.value = '변경에 실패했습니다.' }
 }
 
@@ -219,11 +222,11 @@ const onDelete = async () => {
   confirmOpen.value = false
   try {
     await deleteSubscription(selectedSubs.value.subsId)
-    items.value = items.value.filter(i => i.subsId !== selectedSubs.value.subsId)
     selectedSubs.value = null
     Object.assign(formData, EMPTY_FORM)
     isRowSelected.value = false
     successMsg.value = '삭제가 완료되었습니다.'
+    await fetchList()
   } catch (err) {
     errorMsg.value = err?.response?.status === 409
       ? '과금기준이 존재하는 가입은 삭제할 수 없습니다.'

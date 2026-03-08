@@ -7,11 +7,8 @@ target/
 *.war
 
 # ============================
-# Node.js / React
+# Node.js / Vue
 # ============================
-frontend/node_modules/
-frontend/dist/
-frontend/.vite/
 frontend-vue/node_modules/
 frontend-vue/dist/
 

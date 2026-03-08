@@ -42,7 +42,7 @@
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">서비스코드</label>
-            <input v-model="formData.svcCd" class="w-full h-8 px-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-400" />
+            <CommonCodeSelect common-code="svc_cd" v-model="formData.svcCd" />
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">적용시작일</label>
@@ -98,6 +98,7 @@ import MainLayout from '../components/common/MainLayout.vue'
 import Toast from '../components/common/Toast.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
+import CommonCodeSelect from '../components/common/CommonCodeSelect.vue'
 
 const auth = useAuthStore()
 

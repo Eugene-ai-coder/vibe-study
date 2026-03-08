@@ -61,7 +61,7 @@
             </div>
             <div>
               <label class="block text-xs text-gray-500 mb-1">서비스코드</label>
-              <input v-model="formData.svcCd" class="w-full h-8 border border-gray-300 rounded px-2 text-sm focus:outline-none focus:border-blue-400" />
+              <CommonCodeSelect common-code="svc_cd" v-model="formData.svcCd" />
             </div>
             <div>
               <label class="block text-xs text-gray-500 mb-1">유효종료일</label>
@@ -72,8 +72,8 @@
               <input v-model="formData.lastEffYn" class="w-full h-8 border border-gray-300 rounded px-2 text-sm focus:outline-none focus:border-blue-400" />
             </div>
             <div>
-              <label class="block text-xs text-gray-500 mb-1">상태코드</label>
-              <input v-model="formData.statCd" class="w-full h-8 border border-gray-300 rounded px-2 text-sm focus:outline-none focus:border-blue-400" />
+              <label class="block text-xs text-gray-500 mb-1">특수가입상태</label>
+              <CommonCodeSelect common-code="spec_subs_stat_cd" v-model="formData.specSubsStatCd" />
             </div>
           </div>
         </div>
@@ -136,23 +136,28 @@ import Toast from '../components/common/Toast.vue'
 import DataGrid from '../components/common/DataGrid.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
+import CommonCodeSelect from '../components/common/CommonCodeSelect.vue'
+import { useCommonCodeLabel } from '../composables/useCommonCodeLabel'
 
 const auth = useAuthStore()
+const { getLabel } = useCommonCodeLabel(['svc_cd', 'spec_subs_stat_cd'])
 
 const EMPTY_FORM = {
   subsBillStdId: '', effStaDt: '', subsId: '', svcCd: '',
-  effEndDt: '', lastEffYn: '', statCd: '',
+  effEndDt: '', lastEffYn: '', specSubsStatCd: '',
   cntrcCapKmh: '', cntrcAmt: '', dscRt: '', rmk: '',
 }
 
-const columns = [
+const columns = computed(() => [
   { key: 'subsBillStdId', header: '가입별과금기준ID', size: 160 },
   { key: 'effStaDt', header: '유효시작일', size: 100 },
   { key: 'subsId', header: '가입ID', size: 140 },
-  { key: 'svcCd', header: '서비스코드', size: 100 },
-  { key: 'statCd', header: '상태코드', size: 100 },
+  { key: 'svcCd', header: '서비스코드', size: 100,
+    cell: { props: ['value'], setup(props) { return () => getLabel('svc_cd', props.value) } } },
+  { key: 'specSubsStatCd', header: '특수가입상태', size: 100,
+    cell: { props: ['value'], setup(props) { return () => getLabel('spec_subs_stat_cd', props.value) } } },
   { key: 'lastEffYn', header: '최종유효여부', size: 100 },
-]
+])
 
 const searchSubsBillStdId = ref('')
 const searchSubsId = ref('')
@@ -191,7 +196,7 @@ const toRequestDto = () => ({
   svcCd: formData.svcCd || null,
   effEndDt: formData.effEndDt || null,
   lastEffYn: formData.lastEffYn || null,
-  statCd: formData.statCd || null,
+  specSubsStatCd: formData.specSubsStatCd || null,
   cntrcCapKmh: formData.cntrcCapKmh ? parseFloat(formData.cntrcCapKmh) : null,
   cntrcAmt: formData.cntrcAmt ? parseFloat(formData.cntrcAmt) : null,
   dscRt: formData.dscRt ? parseFloat(formData.dscRt) : null,

@@ -9,6 +9,7 @@ public interface CommonCodeService {
     void delete(String commonCode);
 
     List<CommonDtlCodeResponseDto> findDetails(String commonCode);
+    List<CommonDtlCodeResponseDto> findEffectiveDetails(String commonCode);
     CommonDtlCodeResponseDto createDetail(String commonCode, CommonDtlCodeRequestDto dto);
     CommonDtlCodeResponseDto updateDetail(String commonCode, String dtlCode, CommonDtlCodeRequestDto dto);
     void deleteDetail(String commonCode, String dtlCode);

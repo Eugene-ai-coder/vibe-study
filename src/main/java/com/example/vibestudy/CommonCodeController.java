@@ -46,6 +46,11 @@ public class CommonCodeController {
         return commonCodeService.findDetails(commonCode);
     }
 
+    @GetMapping("/{commonCode}/details/effective")
+    public List<CommonDtlCodeResponseDto> getEffectiveDetails(@PathVariable String commonCode) {
+        return commonCodeService.findEffectiveDetails(commonCode);
+    }
+
     @PostMapping("/{commonCode}/details")
     public ResponseEntity<CommonDtlCodeResponseDto> createDetail(
             @PathVariable String commonCode,

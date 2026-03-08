@@ -55,7 +55,7 @@ public class SpecialSubscriptionServiceImpl implements SpecialSubscriptionServic
         entity.setSvcCd(dto.getSvcCd());
         entity.setEffEndDt(dto.getEffEndDt() != null && !dto.getEffEndDt().isBlank() ? dto.getEffEndDt() : "99991231");
         entity.setLastEffYn(dto.getLastEffYn());
-        entity.setStatCd(dto.getStatCd());
+        entity.setSpecSubsStatCd(dto.getSpecSubsStatCd());
         entity.setCntrcCapKmh(dto.getCntrcCapKmh());
         entity.setCntrcAmt(dto.getCntrcAmt());
         entity.setDscRt(dto.getDscRt());
@@ -76,7 +76,7 @@ public class SpecialSubscriptionServiceImpl implements SpecialSubscriptionServic
         entity.setSvcCd(dto.getSvcCd());
         entity.setEffEndDt(dto.getEffEndDt());
         entity.setLastEffYn(dto.getLastEffYn());
-        entity.setStatCd(dto.getStatCd());
+        entity.setSpecSubsStatCd(dto.getSpecSubsStatCd());
         entity.setCntrcCapKmh(dto.getCntrcCapKmh());
         entity.setCntrcAmt(dto.getCntrcAmt());
         entity.setDscRt(dto.getDscRt());
@@ -111,7 +111,7 @@ public class SpecialSubscriptionServiceImpl implements SpecialSubscriptionServic
         dto.setSvcCd(e.getSvcCd());
         dto.setEffEndDt(e.getEffEndDt());
         dto.setLastEffYn(e.getLastEffYn());
-        dto.setStatCd(e.getStatCd());
+        dto.setSpecSubsStatCd(e.getSpecSubsStatCd());
         dto.setCntrcCapKmh(e.getCntrcCapKmh());
         dto.setCntrcAmt(e.getCntrcAmt());
         dto.setDscRt(e.getDscRt());

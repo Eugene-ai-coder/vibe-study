@@ -10,7 +10,7 @@ public class SpecialSubscriptionResponseDto {
     private String svcCd;
     private String effEndDt;
     private String lastEffYn;
-    private String statCd;
+    private String specSubsStatCd;
     private BigDecimal cntrcCapKmh;
     private BigDecimal cntrcAmt;
     private BigDecimal dscRt;
@@ -32,8 +32,8 @@ public class SpecialSubscriptionResponseDto {
     public void setEffEndDt(String effEndDt) { this.effEndDt = effEndDt; }
     public String getLastEffYn() { return lastEffYn; }
     public void setLastEffYn(String lastEffYn) { this.lastEffYn = lastEffYn; }
-    public String getStatCd() { return statCd; }
-    public void setStatCd(String statCd) { this.statCd = statCd; }
+    public String getSpecSubsStatCd() { return specSubsStatCd; }
+    public void setSpecSubsStatCd(String specSubsStatCd) { this.specSubsStatCd = specSubsStatCd; }
     public BigDecimal getCntrcCapKmh() { return cntrcCapKmh; }
     public void setCntrcCapKmh(BigDecimal cntrcCapKmh) { this.cntrcCapKmh = cntrcCapKmh; }
     public BigDecimal getCntrcAmt() { return cntrcAmt; }
