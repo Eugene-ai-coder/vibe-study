@@ -17,11 +17,11 @@ public class Subscription {
     @Column(name = "subs_nm", length = 100)
     private String subsNm;
 
-    @Column(name = "svc_nm", length = 100)
-    private String svcNm;
+    @Column(name = "svc_cd", length = 10)
+    private String svcCd;
 
-    @Column(name = "fee_prod_nm", length = 100)
-    private String feeProdNm;
+    @Column(name = "fee_prod_cd", length = 10)
+    private String feeProdCd;
 
     @Column(name = "subs_status_cd", length = 20)
     private String subsStatusCd;
@@ -53,11 +53,11 @@ public class Subscription {
     public String getSubsNm() { return subsNm; }
     public void setSubsNm(String subsNm) { this.subsNm = subsNm; }
 
-    public String getSvcNm() { return svcNm; }
-    public void setSvcNm(String svcNm) { this.svcNm = svcNm; }
+    public String getSvcCd() { return svcCd; }
+    public void setSvcCd(String svcCd) { this.svcCd = svcCd; }
 
-    public String getFeeProdNm() { return feeProdNm; }
-    public void setFeeProdNm(String feeProdNm) { this.feeProdNm = feeProdNm; }
+    public String getFeeProdCd() { return feeProdCd; }
+    public void setFeeProdCd(String feeProdCd) { this.feeProdCd = feeProdCd; }
 
     public String getSubsStatusCd() { return subsStatusCd; }
     public void setSubsStatusCd(String subsStatusCd) { this.subsStatusCd = subsStatusCd; }

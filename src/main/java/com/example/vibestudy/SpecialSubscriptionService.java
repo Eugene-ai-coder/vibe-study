@@ -1,9 +1,10 @@
 package com.example.vibestudy;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface SpecialSubscriptionService {
-    List<SpecialSubscriptionResponseDto> findAll(String subsBillStdId, String subsId);
+    Page<SpecialSubscriptionResponseDto> findPage(String subsBillStdId, String subsId, Pageable pageable);
     SpecialSubscriptionResponseDto findById(String subsBillStdId, String effStaDt);
     SpecialSubscriptionResponseDto create(SpecialSubscriptionRequestDto dto);
     SpecialSubscriptionResponseDto update(String subsBillStdId, String effStaDt, SpecialSubscriptionRequestDto dto);

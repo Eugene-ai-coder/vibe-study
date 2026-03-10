@@ -1,7 +1,7 @@
 import apiClient from './apiClient'
 
-export const searchSubscriptions = (type, keyword) =>
-  apiClient.get('/subscriptions', { params: { type, keyword } }).then(res => res.data)
+export const searchSubscriptions = (params = {}) =>
+  apiClient.get('/subscriptions', { params }).then(res => res.data)
 
 export const getSubscription = (subsId) =>
   apiClient.get(`/subscriptions/${subsId}`).then(r => r.data)

@@ -8,6 +8,8 @@ MERGE INTO tb_common_code (common_code, common_code_nm, remark, created_by, crea
 MERGE INTO tb_common_code (common_code, common_code_nm, remark, created_by, created_dt) KEY (common_code) VALUES
 ('svc_cd',                '서비스코드',               'tb_bill_std.svc_cd, tb_special_subscription.svc_cd', 'SYSTEM', CURRENT_TIMESTAMP);
 MERGE INTO tb_common_code (common_code, common_code_nm, remark, created_by, created_dt) KEY (common_code) VALUES
+('fee_prod_cd',             '요금상품코드',              'tb_subscription.fee_prod_cd',                     'SYSTEM', CURRENT_TIMESTAMP);
+MERGE INTO tb_common_code (common_code, common_code_nm, remark, created_by, created_dt) KEY (common_code) VALUES
 ('std_reg_stat_cd',       '과금기준등록진행상태코드',  'tb_bill_std.std_reg_stat_cd',                     'SYSTEM', CURRENT_TIMESTAMP);
 MERGE INTO tb_common_code (common_code, common_code_nm, remark, created_by, created_dt) KEY (common_code) VALUES
 ('bill_std_stat_cd',      '과금기준상태코드',          'tb_bill_std.bill_std_stat_cd',                    'SYSTEM', CURRENT_TIMESTAMP);
@@ -41,6 +43,20 @@ MERGE INTO tb_common_dtl_code (common_code, common_dtl_code, common_dtl_code_nm,
 ('svc_cd', 'SVC02', '냉방', 2, TIMESTAMP '2000-01-01 00:00:00', TIMESTAMP '9999-12-31 23:59:59', 'SYSTEM', CURRENT_TIMESTAMP);
 MERGE INTO tb_common_dtl_code (common_code, common_dtl_code, common_dtl_code_nm, sort_order, eff_start_dt, eff_end_dt, created_by, created_dt) KEY (common_code, common_dtl_code) VALUES
 ('svc_cd', 'SVC03', '통신', 3, TIMESTAMP '2000-01-01 00:00:00', TIMESTAMP '9999-12-31 23:59:59', 'SYSTEM', CURRENT_TIMESTAMP);
+
+-- 요금상품코드
+MERGE INTO tb_common_dtl_code (common_code, common_dtl_code, common_dtl_code_nm, sort_order, eff_start_dt, eff_end_dt, created_by, created_dt) KEY (common_code, common_dtl_code) VALUES
+('fee_prod_cd', 'FP_A', '요금상품 A', 1, TIMESTAMP '2000-01-01 00:00:00', TIMESTAMP '9999-12-31 23:59:59', 'SYSTEM', CURRENT_TIMESTAMP);
+MERGE INTO tb_common_dtl_code (common_code, common_dtl_code, common_dtl_code_nm, sort_order, eff_start_dt, eff_end_dt, created_by, created_dt) KEY (common_code, common_dtl_code) VALUES
+('fee_prod_cd', 'FP_B', '요금상품 B', 2, TIMESTAMP '2000-01-01 00:00:00', TIMESTAMP '9999-12-31 23:59:59', 'SYSTEM', CURRENT_TIMESTAMP);
+MERGE INTO tb_common_dtl_code (common_code, common_dtl_code, common_dtl_code_nm, sort_order, eff_start_dt, eff_end_dt, created_by, created_dt) KEY (common_code, common_dtl_code) VALUES
+('fee_prod_cd', 'FP_C', '요금상품 C', 3, TIMESTAMP '2000-01-01 00:00:00', TIMESTAMP '9999-12-31 23:59:59', 'SYSTEM', CURRENT_TIMESTAMP);
+MERGE INTO tb_common_dtl_code (common_code, common_dtl_code, common_dtl_code_nm, sort_order, eff_start_dt, eff_end_dt, created_by, created_dt) KEY (common_code, common_dtl_code) VALUES
+('fee_prod_cd', 'FP_D', '요금상품 D', 4, TIMESTAMP '2000-01-01 00:00:00', TIMESTAMP '9999-12-31 23:59:59', 'SYSTEM', CURRENT_TIMESTAMP);
+MERGE INTO tb_common_dtl_code (common_code, common_dtl_code, common_dtl_code_nm, sort_order, eff_start_dt, eff_end_dt, created_by, created_dt) KEY (common_code, common_dtl_code) VALUES
+('fee_prod_cd', 'FP_E', '요금상품 E', 5, TIMESTAMP '2000-01-01 00:00:00', TIMESTAMP '9999-12-31 23:59:59', 'SYSTEM', CURRENT_TIMESTAMP);
+MERGE INTO tb_common_dtl_code (common_code, common_dtl_code, common_dtl_code_nm, sort_order, eff_start_dt, eff_end_dt, created_by, created_dt) KEY (common_code, common_dtl_code) VALUES
+('fee_prod_cd', 'FP_F', '요금상품 F', 6, TIMESTAMP '2000-01-01 00:00:00', TIMESTAMP '9999-12-31 23:59:59', 'SYSTEM', CURRENT_TIMESTAMP);
 
 -- 과금기준등록진행상태코드
 MERGE INTO tb_common_dtl_code (common_code, common_dtl_code, common_dtl_code_nm, sort_order, eff_start_dt, eff_end_dt, created_by, created_dt) KEY (common_code, common_dtl_code) VALUES

@@ -1,11 +1,16 @@
 package com.example.vibestudy;
 
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -18,21 +23,18 @@ public class SpecialSubscriptionServiceImpl implements SpecialSubscriptionServic
     }
 
     @Override
-    public List<SpecialSubscriptionResponseDto> findAll(String subsBillStdId, String subsId) {
-        boolean hasBillStdId = subsBillStdId != null && !subsBillStdId.isBlank();
-        boolean hasSubsId = subsId != null && !subsId.isBlank();
-
-        List<SpecialSubscription> list;
-        if (hasBillStdId && hasSubsId) {
-            list = repository.findByIdSubsBillStdIdContainingAndSubsIdContaining(subsBillStdId, subsId);
-        } else if (hasBillStdId) {
-            list = repository.findByIdSubsBillStdIdContaining(subsBillStdId);
-        } else if (hasSubsId) {
-            list = repository.findBySubsIdContaining(subsId);
-        } else {
-            list = repository.findAll();
-        }
-        return list.stream().map(this::toDto).toList();
+    public Page<SpecialSubscriptionResponseDto> findPage(String subsBillStdId, String subsId, Pageable pageable) {
+        Specification<SpecialSubscription> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (subsBillStdId != null && !subsBillStdId.isBlank()) {
+                predicates.add(cb.like(root.get("id").get("subsBillStdId"), "%" + subsBillStdId + "%"));
+            }
+            if (subsId != null && !subsId.isBlank()) {
+                predicates.add(cb.like(root.get("subsId"), "%" + subsId + "%"));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        return repository.findAll(spec, pageable).map(this::toDto);
     }
 
     @Override

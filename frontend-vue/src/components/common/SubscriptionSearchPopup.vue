@@ -31,7 +31,7 @@
               class="h-7 cursor-pointer hover:bg-blue-50 border-b border-gray-100">
               <td class="px-3 text-xs text-gray-800">{{ item.subsId }}</td>
               <td class="px-3 text-xs text-gray-600">{{ item.subsNm }}</td>
-              <td class="px-3 text-xs text-gray-600">{{ item.svcNm }}</td>
+              <td class="px-3 text-xs text-gray-600">{{ getLabel('svc_cd', item.svcCd) }}</td>
             </tr>
           </tbody>
         </table>
@@ -43,8 +43,10 @@
 <script setup>
 import { ref } from 'vue'
 import { searchSubscriptions } from '../../api/subscriptionApi'
+import { useCommonCodeLabel } from '../../composables/useCommonCodeLabel'
 
 const emit = defineEmits(['close', 'select'])
+const { getLabel } = useCommonCodeLabel(['svc_cd'])
 
 const keyword = ref('')
 const results = ref([])
@@ -54,7 +56,8 @@ const handleSearch = async () => {
   if (!keyword.value.trim()) return
   isSearching.value = true
   try {
-    results.value = await searchSubscriptions('SUBS_ID', keyword.value.trim())
+    const page = await searchSubscriptions({ type: 'SUBS_ID', keyword: keyword.value.trim() })
+    results.value = page.content || []
   } catch {
     results.value = []
   } finally {

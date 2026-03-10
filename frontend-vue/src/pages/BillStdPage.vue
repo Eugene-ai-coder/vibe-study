@@ -41,7 +41,7 @@
             <input v-model="formData.subsId" class="w-full h-8 px-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-400" />
           </div>
           <div>
-            <label class="block text-xs text-gray-500 mb-1">서비스코드</label>
+            <label class="block text-xs text-gray-500 mb-1">서비스</label>
             <CommonCodeSelect common-code="svc_cd" v-model="formData.svcCd" />
           </div>
           <div>

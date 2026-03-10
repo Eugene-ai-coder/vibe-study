@@ -1,10 +1,8 @@
 package com.example.vibestudy;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import java.util.List;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-public interface SpecialSubscriptionRepository extends JpaRepository<SpecialSubscription, SpecialSubscriptionId> {
-    List<SpecialSubscription> findByIdSubsBillStdIdContaining(String subsBillStdId);
-    List<SpecialSubscription> findBySubsIdContaining(String subsId);
-    List<SpecialSubscription> findByIdSubsBillStdIdContainingAndSubsIdContaining(String subsBillStdId, String subsId);
+public interface SpecialSubscriptionRepository extends JpaRepository<SpecialSubscription, SpecialSubscriptionId>,
+        JpaSpecificationExecutor<SpecialSubscription> {
 }

@@ -1,1 +1,0 @@
-import{C as i}from"./index-N-mHAego.js";const n=(s,t)=>i.get("/subscriptions",{params:{type:s,keyword:t}}).then(a=>a.data),o=s=>i.post("/subscriptions",s).then(t=>t.data),c=(s,t)=>i.put(`/subscriptions/${s}`,t).then(a=>a.data),p=s=>i.delete(`/subscriptions/${s}`);export{o as c,p as d,n as s,c as u};

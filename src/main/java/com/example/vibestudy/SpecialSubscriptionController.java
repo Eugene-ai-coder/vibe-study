@@ -1,9 +1,9 @@
 package com.example.vibestudy;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/special-subscriptions")
@@ -16,10 +16,11 @@ public class SpecialSubscriptionController {
     }
 
     @GetMapping
-    public List<SpecialSubscriptionResponseDto> getAll(
+    public Page<SpecialSubscriptionResponseDto> getAll(
             @RequestParam(required = false) String subsBillStdId,
-            @RequestParam(required = false) String subsId) {
-        return service.findAll(subsBillStdId, subsId);
+            @RequestParam(required = false) String subsId,
+            Pageable pageable) {
+        return service.findPage(subsBillStdId, subsId, pageable);
     }
 
     @GetMapping("/{subsBillStdId}/{effStaDt}")

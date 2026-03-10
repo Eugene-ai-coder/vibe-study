@@ -32,6 +32,11 @@
       <DataGrid
         :columns="columns"
         :data="dataWithRowId"
+        :page="page"
+        :total-pages="totalPages"
+        :total-elements="totalElements"
+        :page-size="pageSize"
+        :on-page-change="handlePageChange"
         row-id-accessor="_rowId"
         :selected-row-id="selectedId"
         @row-click="handleRowClick"
@@ -60,7 +65,7 @@
               <input v-model="formData.subsId" class="w-full h-8 border border-gray-300 rounded px-2 text-sm focus:outline-none focus:border-blue-400" />
             </div>
             <div>
-              <label class="block text-xs text-gray-500 mb-1">서비스코드</label>
+              <label class="block text-xs text-gray-500 mb-1">서비스</label>
               <CommonCodeSelect common-code="svc_cd" v-model="formData.svcCd" />
             </div>
             <div>
@@ -152,7 +157,7 @@ const columns = computed(() => [
   { key: 'subsBillStdId', header: '가입별과금기준ID', size: 160 },
   { key: 'effStaDt', header: '유효시작일', size: 100 },
   { key: 'subsId', header: '가입ID', size: 140 },
-  { key: 'svcCd', header: '서비스코드', size: 100,
+  { key: 'svcCd', header: '서비스', size: 100,
     cell: { props: ['value'], setup(props) { return () => getLabel('svc_cd', props.value) } } },
   { key: 'specSubsStatCd', header: '특수가입상태', size: 100,
     cell: { props: ['value'], setup(props) { return () => getLabel('spec_subs_stat_cd', props.value) } } },
@@ -169,6 +174,11 @@ const isLoading = ref(false)
 const confirmOpen = ref(false)
 const errorMsg = ref('')
 const successMsg = ref('')
+
+const page = ref(0)
+const totalPages = ref(0)
+const totalElements = ref(0)
+const pageSize = 10
 
 const selectedId = computed(() =>
   selected.value ? `${selected.value.subsBillStdId}__${selected.value.effStaDt}` : null
@@ -212,11 +222,21 @@ const getSearchParams = () => {
   return params
 }
 
+const fetchList = async (pageNum = 0) => {
+  const data = await getSpecialSubscriptions({ ...getSearchParams(), page: pageNum, size: pageSize })
+  items.value = data.content
+  page.value = data.number
+  totalPages.value = data.totalPages
+  totalElements.value = data.totalElements
+}
+
+const handlePageChange = (newPage) => fetchList(newPage)
+
 const handleSearch = async () => {
   clearMessages()
   isLoading.value = true
   try {
-    items.value = await getSpecialSubscriptions(getSearchParams())
+    await fetchList(0)
     selected.value = null
     Object.assign(formData, EMPTY_FORM)
     isNew.value = false
@@ -257,7 +277,7 @@ const handleSaveClick = async () => {
       selected.value = updated
       successMsg.value = '변경이 완료되었습니다.'
     }
-    items.value = await getSpecialSubscriptions(getSearchParams())
+    await fetchList(page.value)
   } catch (err) {
     const status = err?.response?.status
     if (status === 409) errorMsg.value = '이미 존재하는 특수가입입니다.'
@@ -280,7 +300,7 @@ const executeDelete = async () => {
     Object.assign(formData, EMPTY_FORM)
     isNew.value = false
     successMsg.value = '삭제가 완료되었습니다.'
-    items.value = await getSpecialSubscriptions(getSearchParams())
+    await fetchList(page.value)
   } catch { errorMsg.value = '삭제에 실패했습니다.' }
 }
 </script>

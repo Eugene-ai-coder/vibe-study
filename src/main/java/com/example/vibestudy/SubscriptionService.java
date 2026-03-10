@@ -1,11 +1,12 @@
 package com.example.vibestudy;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface SubscriptionService {
 
-    /** 검색 유형·키워드 기반 목록 조회 */
-    List<SubscriptionResponseDto> search(String type, String keyword);
+    /** 검색 유형·키워드 기반 페이징 목록 조회 */
+    Page<SubscriptionResponseDto> searchPage(String type, String keyword, Pageable pageable);
 
     /** 단건 조회 — 없으면 404 */
     SubscriptionResponseDto findById(String subsId);

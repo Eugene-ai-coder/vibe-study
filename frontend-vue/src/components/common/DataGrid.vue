@@ -30,12 +30,19 @@
     <div class="overflow-x-auto">
       <table :style="{ tableLayout: 'fixed', width: totalWidth + 'px' }" class="text-sm">
         <colgroup>
+          <col v-if="selectable" :style="{ width: CHECKBOX_COL_WIDTH + 'px' }" />
           <col v-for="col in visibleColumns" :key="col.key" :style="{ width: colWidths[col.key] + 'px' }" />
         </colgroup>
 
         <!-- 헤더 -->
         <thead class="border-b border-gray-200">
           <tr>
+            <th v-if="selectable"
+              class="px-1 py-2 text-center bg-gray-50 border-r border-gray-200"
+              :style="{ width: CHECKBOX_COL_WIDTH + 'px' }"
+            >
+              <input type="checkbox" :checked="isAllSelected" @change="toggleAll" class="cursor-pointer" />
+            </th>
             <th
               v-for="(col, idx) in visibleColumns"
               :key="col.key"
@@ -86,7 +93,7 @@
         <!-- 바디 -->
         <tbody>
           <tr v-if="processedData.length === 0">
-            <td :colspan="visibleColumns.length" class="px-4 py-6 text-center text-xs text-gray-400">
+            <td :colspan="visibleColumns.length + (selectable ? 1 : 0)" class="px-4 py-6 text-center text-xs text-gray-400">
               {{ emptyMessage }}
             </td>
           </tr>
@@ -99,6 +106,14 @@
               selectedRowId != null && row[rowIdAccessor] === selectedRowId ? 'bg-blue-50' : 'hover:bg-gray-50'
             ]"
           >
+            <td v-if="selectable" class="px-1 text-center border-r border-gray-100">
+              <input type="checkbox"
+                :checked="selectedRowIds.has(row[rowIdAccessor])"
+                :disabled="disabledRowIds.has(row[rowIdAccessor])"
+                @click.stop="toggleRow(row)"
+                class="cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              />
+            </td>
             <td
               v-for="(col, idx) in visibleColumns"
               :key="col.key"
@@ -174,9 +189,12 @@ const props = defineProps({
   emptyMessage: { type: String, default: '데이터가 없습니다.' },
   storageKey: { type: String, default: '' },
   title: { type: String, default: '' },
+  selectable: { type: Boolean, default: false },
+  selectedRowIds: { type: Set, default: () => new Set() },
+  disabledRowIds: { type: Set, default: () => new Set() },
 })
 
-defineEmits(['rowClick'])
+const emit = defineEmits(['rowClick', 'selectionChange'])
 
 /* 컬럼 키 목록 */
 const defaultOrder = computed(() => props.columns.map(c => c.accessorKey ?? c.id ?? c.key))
@@ -224,9 +242,12 @@ onMounted(() => {
   })
 })
 
-const totalWidth = computed(() =>
-  visibleColumns.value.reduce((sum, col) => sum + (colWidths[col.key] || 150), 0)
-)
+const CHECKBOX_COL_WIDTH = 40
+
+const totalWidth = computed(() => {
+  const base = visibleColumns.value.reduce((sum, col) => sum + (colWidths[col.key] || 150), 0)
+  return props.selectable ? base + CHECKBOX_COL_WIDTH : base
+})
 
 /* 리사이즈 */
 const startResize = (e, colKey) => {
@@ -387,4 +408,32 @@ const pageButtons = computed(() => {
   for (let i = start; i < end; i++) items.push(i)
   return items
 })
+
+/* 체크박스 선택 */
+const selectableRows = computed(() =>
+  processedData.value.filter(row => !props.disabledRowIds.has(row[props.rowIdAccessor]))
+)
+
+const isAllSelected = computed(() =>
+  selectableRows.value.length > 0 && selectableRows.value.every(row => props.selectedRowIds.has(row[props.rowIdAccessor]))
+)
+
+const toggleAll = () => {
+  const next = new Set(props.selectedRowIds)
+  if (isAllSelected.value) {
+    selectableRows.value.forEach(row => next.delete(row[props.rowIdAccessor]))
+  } else {
+    selectableRows.value.forEach(row => next.add(row[props.rowIdAccessor]))
+  }
+  emit('selectionChange', next)
+}
+
+const toggleRow = (row) => {
+  const id = row[props.rowIdAccessor]
+  if (props.disabledRowIds.has(id)) return
+  const next = new Set(props.selectedRowIds)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  emit('selectionChange', next)
+}
 </script>

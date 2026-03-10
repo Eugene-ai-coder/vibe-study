@@ -18,14 +18,16 @@ public class SubscriptionDataInitializer implements CommandLineRunner {
         if (repository.count() > 0) return;  // 이미 데이터 존재 시 스킵
 
         String[] statuses = {"ACTIVE", "SUSPENDED", "TERMINATED", "PENDING"};
+        String[] svcCodes = {"SVC01", "SVC02", "SVC03"};
+        String[] feeProdCodes = {"FP_A", "FP_B", "FP_C", "FP_D", "FP_E", "FP_F"};
         LocalDateTime now = LocalDateTime.now();
 
-        for (int i = 1; i <= 10; i++) {
+        for (int i = 1; i <= 30; i++) {
             Subscription s = new Subscription();
             s.setSubsId(String.format("SUBS%04d", i));
             s.setSubsNm("가입자" + i);
-            s.setSvcNm("서비스" + ((i % 3) + 1));
-            s.setFeeProdNm("요금상품" + ((i % 2) + 1));
+            s.setSvcCd(svcCodes[i % 3]);
+            s.setFeeProdCd(feeProdCodes[i % 6]);
             s.setSubsStatusCd(statuses[(i - 1) % 4]);
             s.setSubsDt(now.minusDays(30L * i));
             s.setChgDt(i % 3 == 0 ? now.minusDays(5) : null);

@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS tb_subscription
 
     /* ── 기본 정보 ────────────────────────────────────────────── */
     subs_nm                 VARCHAR(100)   NULL,                   -- 가입자명
-    svc_nm                  VARCHAR(100)   NULL,                   -- 서비스명
-    fee_prod_nm             VARCHAR(100)   NULL,                   -- 요금상품명
+    svc_cd                  VARCHAR(10)    NULL,                   -- 서비스코드
+    fee_prod_cd             VARCHAR(10)    NULL,                   -- 요금상품코드
     subs_status_cd          VARCHAR(20)    NULL,                   -- 가입상태코드 (ACTIVE/SUSPENDED/TERMINATED/PENDING)
     subs_dt                 TIMESTAMP      NULL,                   -- 가입일시 (비즈니스)
     chg_dt                  TIMESTAMP      NULL,                   -- 변경일시 (비즈니스)

@@ -1,10 +1,12 @@
 package com.example.vibestudy;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class SubscriptionServiceImpl implements SubscriptionService {
@@ -22,21 +24,25 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Override
-    public List<SubscriptionResponseDto> search(String type, String keyword) {
-        List<Subscription> result;
+    public Page<SubscriptionResponseDto> searchPage(String type, String keyword, Pageable pageable) {
         String kw = (keyword == null) ? "" : keyword.trim();
 
-        if ("SUBS_STATUS_CD".equals(type)) {
-            result = repository.findBySubsStatusCd(kw);
-        } else if ("SVC_NM".equals(type)) {
-            result = repository.findBySvcNmContainingIgnoreCase(kw);
-        } else if ("FEE_PROD_NM".equals(type)) {
-            result = repository.findByFeeProdNmContainingIgnoreCase(kw);
-        } else {
-            // SUBS_ID (기본)
-            result = repository.findBySubsIdContainingIgnoreCase(kw);
-        }
-        return result.stream().map(this::toDto).toList();
+        Specification<Subscription> spec = (root, query, cb) -> {
+            if (kw.isEmpty()) return cb.conjunction();
+            if ("SUBS_STATUS_CD".equals(type)) {
+                return cb.equal(root.get("subsStatusCd"), kw);
+            } else if ("SVC_CD".equals(type)) {
+                return cb.like(cb.lower(root.get("svcCd")), "%" + kw.toLowerCase() + "%");
+            } else if ("FEE_PROD_CD".equals(type)) {
+                return cb.like(cb.lower(root.get("feeProdCd")), "%" + kw.toLowerCase() + "%");
+            } else if ("SUBS_NM".equals(type)) {
+                return cb.like(cb.lower(root.get("subsNm")), "%" + kw.toLowerCase() + "%");
+            } else {
+                // SUBS_ID (기본)
+                return cb.like(cb.lower(root.get("subsId")), "%" + kw.toLowerCase() + "%");
+            }
+        };
+        return repository.findAll(spec, pageable).map(this::toDto);
     }
 
     @Override
@@ -53,8 +59,8 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         Subscription entity = new Subscription();
         entity.setSubsId(dto.getSubsId());
         entity.setSubsNm(dto.getSubsNm());
-        entity.setSvcNm(dto.getSvcNm());
-        entity.setFeeProdNm(dto.getFeeProdNm());
+        entity.setSvcCd(dto.getSvcCd());
+        entity.setFeeProdCd(dto.getFeeProdCd());
         entity.setSubsStatusCd(dto.getSubsStatusCd());
         entity.setSubsDt(dto.getSubsDt());
         entity.setChgDt(dto.getChgDt());
@@ -68,8 +74,8 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         Subscription entity = findOrThrow(subsId);
         // subsId / createdBy / createdDt 변경 불가
         entity.setSubsNm(dto.getSubsNm());
-        entity.setSvcNm(dto.getSvcNm());
-        entity.setFeeProdNm(dto.getFeeProdNm());
+        entity.setSvcCd(dto.getSvcCd());
+        entity.setFeeProdCd(dto.getFeeProdCd());
         entity.setSubsStatusCd(dto.getSubsStatusCd());
         entity.setSubsDt(dto.getSubsDt());
         entity.setChgDt(dto.getChgDt());
@@ -103,8 +109,8 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         SubscriptionResponseDto dto = new SubscriptionResponseDto();
         dto.setSubsId(e.getSubsId());
         dto.setSubsNm(e.getSubsNm());
-        dto.setSvcNm(e.getSvcNm());
-        dto.setFeeProdNm(e.getFeeProdNm());
+        dto.setSvcCd(e.getSvcCd());
+        dto.setFeeProdCd(e.getFeeProdCd());
         dto.setSubsStatusCd(e.getSubsStatusCd());
         dto.setSubsDt(e.getSubsDt());
         dto.setChgDt(e.getChgDt());

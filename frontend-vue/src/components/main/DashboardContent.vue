@@ -51,7 +51,7 @@
           >
             <td class="py-1.5 text-[#2563EB]">{{ item.subsId }}</td>
             <td class="py-1.5">{{ item.subsNm }}</td>
-            <td class="py-1.5">{{ item.svcNm }}</td>
+            <td class="py-1.5">{{ getLabel('svc_cd', item.svcCd) }}</td>
           </tr>
         </tbody>
       </table>
@@ -63,15 +63,18 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { searchSubscriptions } from '../../api/subscriptionApi'
+import { useCommonCodeLabel } from '../../composables/useCommonCodeLabel'
 import Toast from '../common/Toast.vue'
 
 const router = useRouter()
+const { getLabel } = useCommonCodeLabel(['svc_cd'])
 const items = ref([])
 const errorMsg = ref('')
 
 onMounted(async () => {
   try {
-    items.value = await searchSubscriptions()
+    const page = await searchSubscriptions({})
+    items.value = page.content || []
   } catch {
     errorMsg.value = '대시보드 데이터를 불러오지 못했습니다.'
   }

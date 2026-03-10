@@ -14,6 +14,8 @@
             <select v-model="searchType" class="h-8 px-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-400 bg-white">
               <option value="SUBS_ID">가입ID</option>
               <option value="SUBS_NM">가입명</option>
+              <option value="SVC_CD">서비스</option>
+              <option value="FEE_PROD_CD">요금상품</option>
             </select>
           </div>
           <div>
@@ -32,6 +34,11 @@
       <DataGrid
         :columns="columns"
         :data="items"
+        :page="page"
+        :total-pages="totalPages"
+        :total-elements="totalElements"
+        :page-size="pageSize"
+        :on-page-change="handlePageChange"
         row-id-accessor="subsId"
         :selected-row-id="selectedSubs?.subsId"
         @row-click="onRowSelect"
@@ -53,12 +60,12 @@
             <input v-model="formData.subsNm" class="w-full h-8 px-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-400" />
           </div>
           <div>
-            <label class="block text-xs text-gray-500 mb-1">서비스명</label>
-            <input v-model="formData.svcNm" class="w-full h-8 px-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-400" />
+            <label class="block text-xs text-gray-500 mb-1">서비스</label>
+            <CommonCodeSelect common-code="svc_cd" v-model="formData.svcCd" />
           </div>
           <div>
-            <label class="block text-xs text-gray-500 mb-1">요금제명</label>
-            <input v-model="formData.feeProdNm" class="w-full h-8 px-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-400" />
+            <label class="block text-xs text-gray-500 mb-1">요금상품</label>
+            <CommonCodeSelect common-code="fee_prod_cd" v-model="formData.feeProdCd" />
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">상태</label>
@@ -103,15 +110,17 @@ import { useCommonCodeLabel } from '../composables/useCommonCodeLabel'
 const auth = useAuthStore()
 const route = useRoute()
 
-const { getLabel } = useCommonCodeLabel(['subs_status_cd'])
+const { getLabel } = useCommonCodeLabel(['subs_status_cd', 'svc_cd', 'fee_prod_cd'])
 
-const EMPTY_FORM = { subsId: '', subsNm: '', svcNm: '', feeProdNm: '', subsStatusCd: '', subsDt: '', chgDt: '' }
+const EMPTY_FORM = { subsId: '', subsNm: '', svcCd: '', feeProdCd: '', subsStatusCd: '', subsDt: '', chgDt: '' }
 
 const columns = computed(() => [
   { key: 'subsId', header: '가입ID', size: 120 },
   { key: 'subsNm', header: '가입명', size: 150 },
-  { key: 'svcNm', header: '서비스명', size: 150 },
-  { key: 'feeProdNm', header: '요금제명', size: 150 },
+  { key: 'svcCd', header: '서비스', size: 120,
+    cell: { props: ['value'], setup(props) { return () => getLabel('svc_cd', props.value) } } },
+  { key: 'feeProdCd', header: '요금상품', size: 120,
+    cell: { props: ['value'], setup(props) { return () => getLabel('fee_prod_cd', props.value) } } },
   { key: 'subsStatusCd', header: '상태', size: 80,
     cell: { props: ['value'], setup(props) { return () => getLabel('subs_status_cd', props.value) } } },
   { key: 'subsDt', header: '가입일시', size: 160 },
@@ -127,13 +136,18 @@ const successMsg = ref('')
 const confirmOpen = ref(false)
 const isSearching = ref(false)
 
+const page = ref(0)
+const totalPages = ref(0)
+const totalElements = ref(0)
+const pageSize = 10
+
 const isRowSelected = ref(false)
 
 const toFormData = (dto) => ({
   subsId: dto.subsId || '',
   subsNm: dto.subsNm || '',
-  svcNm: dto.svcNm || '',
-  feeProdNm: dto.feeProdNm || '',
+  svcCd: dto.svcCd || '',
+  feeProdCd: dto.feeProdCd || '',
   subsStatusCd: dto.subsStatusCd || '',
   subsDt: dto.subsDt ? dto.subsDt.slice(0, 16) : '',
   chgDt: dto.chgDt ? dto.chgDt.slice(0, 16) : '',
@@ -142,8 +156,8 @@ const toFormData = (dto) => ({
 const toRequestDto = () => ({
   subsId: formData.subsId || null,
   subsNm: formData.subsNm || null,
-  svcNm: formData.svcNm || null,
-  feeProdNm: formData.feeProdNm || null,
+  svcCd: formData.svcCd || null,
+  feeProdCd: formData.feeProdCd || null,
   subsStatusCd: formData.subsStatusCd || null,
   subsDt: formData.subsDt || null,
   chgDt: formData.chgDt || null,
@@ -152,13 +166,23 @@ const toRequestDto = () => ({
 
 const clearMessages = () => { errorMsg.value = ''; successMsg.value = '' }
 
+const fetchList = async (pageNum = 0) => {
+  const data = await searchSubscriptions({ type: searchType.value, keyword: keyword.value.trim(), page: pageNum, size: pageSize })
+  items.value = data.content
+  page.value = data.number
+  totalPages.value = data.totalPages
+  totalElements.value = data.totalElements
+}
+
+const handlePageChange = (newPage) => fetchList(newPage)
+
 onMounted(async () => {
   const subsId = route.query.subsId
   if (subsId) {
     keyword.value = subsId
     searchType.value = 'SUBS_ID'
     try {
-      items.value = await searchSubscriptions('SUBS_ID', subsId)
+      await fetchList()
     } catch { errorMsg.value = '조회에 실패했습니다.' }
   }
 })
@@ -167,7 +191,7 @@ const onSearch = async () => {
   clearMessages()
   isSearching.value = true
   try {
-    items.value = await searchSubscriptions(searchType.value, keyword.value.trim())
+    await fetchList(0)
     selectedSubs.value = null
     Object.assign(formData, EMPTY_FORM)
     isRowSelected.value = false
@@ -179,10 +203,6 @@ const onRowSelect = (item) => {
   selectedSubs.value = item
   Object.assign(formData, toFormData(item))
   isRowSelected.value = true
-}
-
-const fetchList = async () => {
-  items.value = await searchSubscriptions(searchType.value, keyword.value.trim())
 }
 
 const onRegister = async () => {
