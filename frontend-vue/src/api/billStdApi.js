@@ -11,3 +11,5 @@ export const createBillStd = (data) => apiClient.post('/bill-std', data).then(re
 export const updateBillStd = (id, data) => apiClient.put(`/bill-std/${id}`, data).then(res => res.data)
 
 export const deleteBillStd = (id) => apiClient.delete(`/bill-std/${id}`)
+
+export const getTodoList = () => apiClient.get('/bill-std/todo').then(res => res.data)

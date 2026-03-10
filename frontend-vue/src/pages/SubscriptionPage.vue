@@ -75,9 +75,24 @@
             <label class="block text-xs text-gray-500 mb-1">가입일시</label>
             <input type="datetime-local" v-model="formData.subsDt" class="w-full h-8 px-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-400" />
           </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">관리자ID</label>
+            <div class="flex gap-2">
+              <input v-model="formData.adminId" readonly
+                class="flex-1 h-8 px-2 border border-gray-200 rounded text-sm bg-gray-50 text-gray-400" />
+              <button @click="showUserPopup = true"
+                class="h-8 px-3 border border-gray-300 rounded text-sm text-gray-600 hover:bg-gray-50">검색</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
+    <UserSearchPopup
+      :visible="showUserPopup"
+      @select="(user) => { formData.adminId = user.userId }"
+      @close="showUserPopup = false"
+    />
 
     <FloatingActionBar>
       <button @click="onRegister" class="h-8 px-6 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">등록</button>
@@ -88,8 +103,19 @@
     <ConfirmDialog
       v-if="confirmOpen"
       message="삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+      confirm-text="삭제"
+      confirm-type="danger"
       @confirm="onDelete"
       @cancel="confirmOpen = false"
+    />
+
+    <ConfirmDialog
+      v-if="saveConfirmOpen"
+      :message="saveConfirmMessage"
+      confirm-text="저장"
+      confirm-type="primary"
+      @confirm="handleSaveConfirm"
+      @cancel="saveConfirmOpen = false"
     />
   </MainLayout>
 </template>
@@ -105,6 +131,7 @@ import DataGrid from '../components/common/DataGrid.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import CommonCodeSelect from '../components/common/CommonCodeSelect.vue'
+import UserSearchPopup from '../components/common/UserSearchPopup.vue'
 import { useCommonCodeLabel } from '../composables/useCommonCodeLabel'
 
 const auth = useAuthStore()
@@ -112,7 +139,8 @@ const route = useRoute()
 
 const { getLabel } = useCommonCodeLabel(['subs_status_cd', 'svc_cd', 'fee_prod_cd'])
 
-const EMPTY_FORM = { subsId: '', subsNm: '', svcCd: '', feeProdCd: '', subsStatusCd: '', subsDt: '', chgDt: '' }
+const EMPTY_FORM = { subsId: '', subsNm: '', svcCd: '', feeProdCd: '', subsStatusCd: '', subsDt: '', chgDt: '', adminId: '' }
+const showUserPopup = ref(false)
 
 const columns = computed(() => [
   { key: 'subsId', header: '가입ID', size: 120 },
@@ -134,6 +162,9 @@ const searchType = ref('SUBS_ID')
 const errorMsg = ref('')
 const successMsg = ref('')
 const confirmOpen = ref(false)
+const saveConfirmOpen = ref(false)
+const saveConfirmMessage = ref('')
+const saveConfirmAction = ref(null)
 const isSearching = ref(false)
 
 const page = ref(0)
@@ -151,6 +182,7 @@ const toFormData = (dto) => ({
   subsStatusCd: dto.subsStatusCd || '',
   subsDt: dto.subsDt ? dto.subsDt.slice(0, 16) : '',
   chgDt: dto.chgDt ? dto.chgDt.slice(0, 16) : '',
+  adminId: dto.adminId || '',
 })
 
 const toRequestDto = () => ({
@@ -161,6 +193,7 @@ const toRequestDto = () => ({
   subsStatusCd: formData.subsStatusCd || null,
   subsDt: formData.subsDt || null,
   chgDt: formData.chgDt || null,
+  adminId: formData.adminId || null,
   createdBy: auth.user?.userId ?? 'SYSTEM',
 })
 
@@ -205,31 +238,45 @@ const onRowSelect = (item) => {
   isRowSelected.value = true
 }
 
-const onRegister = async () => {
+const onRegister = () => {
   clearMessages()
   if (!formData.subsId.trim()) { errorMsg.value = '가입ID는 필수값입니다.'; return }
-  try {
-    const created = await createSubscription(toRequestDto())
-    selectedSubs.value = created
-    Object.assign(formData, toFormData(created))
-    isRowSelected.value = true
-    successMsg.value = '등록이 완료되었습니다.'
-    await fetchList()
-  } catch (err) {
-    errorMsg.value = err?.response?.data?.message || '등록에 실패했습니다.'
-  }
+  saveConfirmMessage.value = '가입을 등록하시겠습니까?'
+  saveConfirmAction.value = 'register'
+  saveConfirmOpen.value = true
 }
 
-const onUpdate = async () => {
+const onUpdate = () => {
   clearMessages()
   if (!selectedSubs.value) { errorMsg.value = '가입을 선택해 주세요.'; return }
+  saveConfirmMessage.value = '가입 정보를 변경하시겠습니까?'
+  saveConfirmAction.value = 'update'
+  saveConfirmOpen.value = true
+}
+
+const handleSaveConfirm = async () => {
+  saveConfirmOpen.value = false
   try {
-    const updated = await updateSubscription(selectedSubs.value.subsId, toRequestDto())
-    selectedSubs.value = updated
-    Object.assign(formData, toFormData(updated))
-    successMsg.value = '변경이 완료되었습니다.'
+    if (saveConfirmAction.value === 'register') {
+      const created = await createSubscription(toRequestDto())
+      selectedSubs.value = created
+      Object.assign(formData, toFormData(created))
+      isRowSelected.value = true
+      successMsg.value = '등록이 완료되었습니다.'
+    } else {
+      const updated = await updateSubscription(selectedSubs.value.subsId, toRequestDto())
+      selectedSubs.value = updated
+      Object.assign(formData, toFormData(updated))
+      successMsg.value = '변경이 완료되었습니다.'
+    }
     await fetchList()
-  } catch { errorMsg.value = '변경에 실패했습니다.' }
+  } catch (err) {
+    if (saveConfirmAction.value === 'register') {
+      errorMsg.value = err?.response?.data?.message || '등록에 실패했습니다.'
+    } else {
+      errorMsg.value = '변경에 실패했습니다.'
+    }
+  }
 }
 
 const onDeleteClick = () => {

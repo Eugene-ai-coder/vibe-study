@@ -106,8 +106,19 @@
     <ConfirmDialog
       v-if="confirmOpen"
       message="선택한 사용자의 역할을 제거하시겠습니까?"
+      confirm-text="제거"
+      confirm-type="danger"
       @confirm="handleRemoveUser"
       @cancel="confirmOpen = false"
+    />
+
+    <ConfirmDialog
+      v-if="addConfirmOpen"
+      :message="`${selectedAddUserIds.length}명의 사용자를 추가하시겠습니까?`"
+      confirm-text="추가"
+      confirm-type="primary"
+      @confirm="handleAddUsersConfirm"
+      @cancel="addConfirmOpen = false"
     />
   </MainLayout>
 </template>
@@ -129,6 +140,7 @@ const selectedUserId = ref(null)
 const selectedAddUserIds = ref([])
 const showAddPopup = ref(false)
 const confirmOpen = ref(false)
+const addConfirmOpen = ref(false)
 const successMsg = ref('')
 const errorMsg = ref('')
 
@@ -179,8 +191,13 @@ const handleRoleSelect = async (roleCd) => {
   await fetchAssignedUsers(roleCd)
 }
 
-const handleAddUsers = async () => {
+const handleAddUsers = () => {
   clearMessages()
+  addConfirmOpen.value = true
+}
+
+const handleAddUsersConfirm = async () => {
+  addConfirmOpen.value = false
   try {
     const currentIds = assignedUsers.value.map(u => u.userId)
     const newIds = [...currentIds, ...selectedAddUserIds.value]

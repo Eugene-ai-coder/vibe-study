@@ -8,6 +8,9 @@ public class QnaResponseDto {
     private String content;
     private Integer viewCnt;
     private String answerYn;
+    private String noticeYn;
+    private LocalDateTime noticeStartDt;
+    private LocalDateTime noticeEndDt;
     private String createdBy;
     private LocalDateTime createdDt;
     private String updatedBy;
@@ -23,6 +26,12 @@ public class QnaResponseDto {
     public void setViewCnt(Integer viewCnt) { this.viewCnt = viewCnt; }
     public String getAnswerYn() { return answerYn; }
     public void setAnswerYn(String answerYn) { this.answerYn = answerYn; }
+    public String getNoticeYn() { return noticeYn; }
+    public void setNoticeYn(String noticeYn) { this.noticeYn = noticeYn; }
+    public LocalDateTime getNoticeStartDt() { return noticeStartDt; }
+    public void setNoticeStartDt(LocalDateTime noticeStartDt) { this.noticeStartDt = noticeStartDt; }
+    public LocalDateTime getNoticeEndDt() { return noticeEndDt; }
+    public void setNoticeEndDt(LocalDateTime noticeEndDt) { this.noticeEndDt = noticeEndDt; }
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
     public LocalDateTime getCreatedDt() { return createdDt; }

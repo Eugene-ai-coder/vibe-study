@@ -45,7 +45,6 @@ public class SecurityConfig {
                     "/api/auth/login",
                     "/api/auth/me"
                 ).permitAll()
-                .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/api/menus/tree/my").authenticated()
                 .requestMatchers("/api/menus/**").hasAuthority("ADMIN")
                 .requestMatchers("/api/roles/**").hasAuthority("ADMIN")
@@ -71,10 +70,6 @@ public class SecurityConfig {
                         Map.of("message", "인증이 필요합니다.",
                                "errors", List.of("인증이 필요합니다.")));
                 })
-            )
-
-            .headers(headers -> headers
-                .frameOptions(frame -> frame.sameOrigin())
             );
 
         return http.build();

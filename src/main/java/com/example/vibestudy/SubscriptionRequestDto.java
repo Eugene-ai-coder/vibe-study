@@ -14,6 +14,7 @@ public class SubscriptionRequestDto {
     private String subsStatusCd;
     private LocalDateTime subsDt;
     private LocalDateTime chgDt;
+    private String adminId;
 
     @NotBlank(message = "생성자ID는 필수입니다.")
     private String createdBy;
@@ -40,6 +41,9 @@ public class SubscriptionRequestDto {
 
     public LocalDateTime getChgDt() { return chgDt; }
     public void setChgDt(LocalDateTime chgDt) { this.chgDt = chgDt; }
+
+    public String getAdminId() { return adminId; }
+    public void setAdminId(String adminId) { this.adminId = adminId; }
 
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }

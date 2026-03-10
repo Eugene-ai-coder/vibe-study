@@ -77,6 +77,8 @@ public class MenuDataInitializer implements CommandLineRunner {
         createMenu("MNU004", "과금기준", "/bill-std", "MNU002", 2, 2);
         createMenu("MNU005", "대표가입 관리", "/subscription-main", "MNU002", 3, 2);
         createMenu("MNU006", "특수가입관리", "/special-subscription", "MNU002", 4, 2);
+        createMenu("MNU014", "과금기준필드설정", "/bill-std-field-config", "MNU002", 5, 2);
+        createMenu("MNU015", "가입별과금기준", "/subs-bill-std", "MNU002", 6, 2);
 
         // 시스템 설정 하위
         createMenu("MNU008", "사용자관리", "/users", "MNU007", 1, 2);
@@ -90,7 +92,7 @@ public class MenuDataInitializer implements CommandLineRunner {
         // 메뉴-역할 매핑: 모든 메뉴에 ADMIN, 메뉴관리 제외하고 USER
         List<String> allMenuIds = List.of(
             "MNU001", "MNU002", "MNU003", "MNU004", "MNU005", "MNU006",
-            "MNU007", "MNU008", "MNU009", "MNU010", "MNU011", "MNU012", "MNU013");
+            "MNU007", "MNU008", "MNU009", "MNU010", "MNU011", "MNU012", "MNU013", "MNU014", "MNU015");
 
         for (String menuId : allMenuIds) {
             createMenuRole(menuId, "ADMIN");

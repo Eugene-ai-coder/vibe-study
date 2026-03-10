@@ -34,11 +34,11 @@ public class QnaServiceImpl implements QnaService {
 
     @Override
     public Page<QnaResponseDto> findAll(String keyword, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDt"));
+        Pageable pageable = PageRequest.of(page, size);
         if (keyword == null || keyword.isBlank()) {
-            return qnaRepository.findAll(pageable).map(this::toDto);
+            return qnaRepository.findAllWithNoticeFirst(pageable).map(this::toDto);
         }
-        return qnaRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageable).map(this::toDto);
+        return qnaRepository.findByKeywordWithNoticeFirst(keyword, pageable).map(this::toDto);
     }
 
     @Override
@@ -55,6 +55,9 @@ public class QnaServiceImpl implements QnaService {
         entity.setContent(dto.getContent());
         entity.setViewCnt(0);
         entity.setAnswerYn("N");
+        entity.setNoticeYn(dto.getNoticeYn() != null ? dto.getNoticeYn() : "N");
+        entity.setNoticeStartDt(dto.getNoticeStartDt());
+        entity.setNoticeEndDt(dto.getNoticeEndDt());
         entity.setCreatedBy(SecurityUtils.getCurrentUserId());
         entity.setCreatedDt(LocalDateTime.now());
         return toDto(qnaRepository.save(entity));
@@ -65,6 +68,9 @@ public class QnaServiceImpl implements QnaService {
         Qna entity = findOrThrow(qnaId);
         entity.setTitle(dto.getTitle());
         entity.setContent(dto.getContent());
+        entity.setNoticeYn(dto.getNoticeYn() != null ? dto.getNoticeYn() : "N");
+        entity.setNoticeStartDt(dto.getNoticeStartDt());
+        entity.setNoticeEndDt(dto.getNoticeEndDt());
         entity.setUpdatedBy(SecurityUtils.getCurrentUserId());
         entity.setUpdatedDt(LocalDateTime.now());
         return toDto(qnaRepository.save(entity));
@@ -119,6 +125,9 @@ public class QnaServiceImpl implements QnaService {
         dto.setContent(entity.getContent());
         dto.setViewCnt(entity.getViewCnt());
         dto.setAnswerYn(entity.getAnswerYn());
+        dto.setNoticeYn(entity.getNoticeYn());
+        dto.setNoticeStartDt(entity.getNoticeStartDt());
+        dto.setNoticeEndDt(entity.getNoticeEndDt());
         dto.setCreatedBy(entity.getCreatedBy());
         dto.setCreatedDt(entity.getCreatedDt());
         dto.setUpdatedBy(entity.getUpdatedBy());

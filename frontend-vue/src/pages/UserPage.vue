@@ -68,6 +68,14 @@
       <button @click="onRegister"
         class="h-8 px-6 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">등록</button>
     </FloatingActionBar>
+    <ConfirmDialog
+      v-if="saveConfirmOpen"
+      message="사용자를 등록하시겠습니까?"
+      confirm-text="등록"
+      confirm-type="primary"
+      @confirm="handleRegisterConfirm"
+      @cancel="saveConfirmOpen = false"
+    />
   </MainLayout>
 </template>
 
@@ -79,6 +87,7 @@ import MainLayout from '../components/common/MainLayout.vue'
 import Toast from '../components/common/Toast.vue'
 import DataGrid from '../components/common/DataGrid.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
+import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 
 const auth = useAuthStore()
 
@@ -105,6 +114,7 @@ const totalPages = ref(0)
 const totalElements = ref(0)
 const pageSize = ref(10)
 const form = reactive({ ...EMPTY_FORM })
+const saveConfirmOpen = ref(false)
 const errorMsg = ref('')
 const successMsg = ref('')
 const searchUserId = ref('')
@@ -145,9 +155,14 @@ const handlePageChange = (newPage) => {
 
 const resetForm = () => Object.assign(form, EMPTY_FORM)
 
-const onRegister = async () => {
+const onRegister = () => {
   errorMsg.value = ''
   successMsg.value = ''
+  saveConfirmOpen.value = true
+}
+
+const handleRegisterConfirm = async () => {
+  saveConfirmOpen.value = false
   try {
     await register({ ...form, createdBy: auth.user?.userId })
     successMsg.value = '등록이 완료되었습니다.'

@@ -1,8 +1,8 @@
 package com.example.vibestudy;
 
 import jakarta.validation.constraints.NotBlank;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 public class BillStdRequestDto {
 
@@ -21,27 +21,8 @@ public class BillStdRequestDto {
     private String stdRegStatCd;
     private String billStdStatCd;
 
-    /* ── 과금 산정 방식 ──────────────────────────────────────── */
-    private String     pwrMetCalcMethCd;
-    private String     uprcDetMethCd;
-    private BigDecimal meteringUnitPriceAmt;
-    private BigDecimal billQty;
-
-    /* ── PUE ─────────────────────────────────────────────────── */
-    private String     pueDetMethCd;
-    private BigDecimal pue1Rt;
-    private BigDecimal pue2Rt;
-
-    /* ── 할인·손실 ───────────────────────────────────────────── */
-    private BigDecimal firstDscRt;
-    private BigDecimal secondDscRt;
-    private BigDecimal lossCompRt;
-
-    /* ── 약정·정산 ───────────────────────────────────────────── */
-    private BigDecimal cntrcCapKmh;
-    private BigDecimal cntrcAmt;
-    private BigDecimal dscAmt;
-    private BigDecimal dailyUnitPrice;
+    /* ── 동적 필드값 ──────────────────────────────────────────── */
+    private Map<String, String> fieldValues;
 
     /* ── System Field ────────────────────────────────────────── */
     @NotBlank(message = "생성자ID는 필수입니다.")
@@ -73,47 +54,8 @@ public class BillStdRequestDto {
     public String getBillStdStatCd() { return billStdStatCd; }
     public void setBillStdStatCd(String billStdStatCd) { this.billStdStatCd = billStdStatCd; }
 
-    public String getPwrMetCalcMethCd() { return pwrMetCalcMethCd; }
-    public void setPwrMetCalcMethCd(String pwrMetCalcMethCd) { this.pwrMetCalcMethCd = pwrMetCalcMethCd; }
-
-    public String getUprcDetMethCd() { return uprcDetMethCd; }
-    public void setUprcDetMethCd(String uprcDetMethCd) { this.uprcDetMethCd = uprcDetMethCd; }
-
-    public BigDecimal getMeteringUnitPriceAmt() { return meteringUnitPriceAmt; }
-    public void setMeteringUnitPriceAmt(BigDecimal meteringUnitPriceAmt) { this.meteringUnitPriceAmt = meteringUnitPriceAmt; }
-
-    public BigDecimal getBillQty() { return billQty; }
-    public void setBillQty(BigDecimal billQty) { this.billQty = billQty; }
-
-    public String getPueDetMethCd() { return pueDetMethCd; }
-    public void setPueDetMethCd(String pueDetMethCd) { this.pueDetMethCd = pueDetMethCd; }
-
-    public BigDecimal getPue1Rt() { return pue1Rt; }
-    public void setPue1Rt(BigDecimal pue1Rt) { this.pue1Rt = pue1Rt; }
-
-    public BigDecimal getPue2Rt() { return pue2Rt; }
-    public void setPue2Rt(BigDecimal pue2Rt) { this.pue2Rt = pue2Rt; }
-
-    public BigDecimal getFirstDscRt() { return firstDscRt; }
-    public void setFirstDscRt(BigDecimal firstDscRt) { this.firstDscRt = firstDscRt; }
-
-    public BigDecimal getSecondDscRt() { return secondDscRt; }
-    public void setSecondDscRt(BigDecimal secondDscRt) { this.secondDscRt = secondDscRt; }
-
-    public BigDecimal getLossCompRt() { return lossCompRt; }
-    public void setLossCompRt(BigDecimal lossCompRt) { this.lossCompRt = lossCompRt; }
-
-    public BigDecimal getCntrcCapKmh() { return cntrcCapKmh; }
-    public void setCntrcCapKmh(BigDecimal cntrcCapKmh) { this.cntrcCapKmh = cntrcCapKmh; }
-
-    public BigDecimal getCntrcAmt() { return cntrcAmt; }
-    public void setCntrcAmt(BigDecimal cntrcAmt) { this.cntrcAmt = cntrcAmt; }
-
-    public BigDecimal getDscAmt() { return dscAmt; }
-    public void setDscAmt(BigDecimal dscAmt) { this.dscAmt = dscAmt; }
-
-    public BigDecimal getDailyUnitPrice() { return dailyUnitPrice; }
-    public void setDailyUnitPrice(BigDecimal dailyUnitPrice) { this.dailyUnitPrice = dailyUnitPrice; }
+    public Map<String, String> getFieldValues() { return fieldValues; }
+    public void setFieldValues(Map<String, String> fieldValues) { this.fieldValues = fieldValues; }
 
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }

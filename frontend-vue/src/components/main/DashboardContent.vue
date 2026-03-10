@@ -30,6 +30,30 @@
       </div>
     </div>
 
+    <!-- TODO 과금기준 -->
+    <div class="bg-white rounded-lg shadow-sm p-5">
+      <h2 class="text-sm font-semibold text-gray-700 mb-3">
+        과금기준 TODO <span class="text-[#2563EB] font-bold">{{ todoItems.length }}</span>건
+      </h2>
+      <p v-if="todoItems.length === 0" class="text-sm text-gray-400">처리할 TODO가 없습니다.</p>
+      <table v-else class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-100">
+            <th class="py-1 text-left text-xs text-gray-500 font-medium">가입ID</th>
+            <th class="py-1 text-left text-xs text-gray-500 font-medium">등록진행상태</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in todoItems" :key="item.billStdId"
+            class="border-b border-gray-50 hover:bg-blue-50 cursor-pointer"
+            @click="router.push(`/bill-std?subsId=${item.subsId}`)">
+            <td class="py-1.5 text-[#2563EB]">{{ item.subsId }}</td>
+            <td class="py-1.5">{{ getLabel('std_reg_stat_cd', item.stdRegStatCd) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <!-- 미납자 리스트 -->
     <div class="bg-white rounded-lg shadow-sm p-5">
       <h2 class="text-sm font-semibold text-gray-700 mb-3">
@@ -63,12 +87,14 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { searchSubscriptions } from '../../api/subscriptionApi'
+import { getTodoList } from '../../api/billStdApi'
 import { useCommonCodeLabel } from '../../composables/useCommonCodeLabel'
 import Toast from '../common/Toast.vue'
 
 const router = useRouter()
-const { getLabel } = useCommonCodeLabel(['svc_cd'])
+const { getLabel } = useCommonCodeLabel(['svc_cd', 'std_reg_stat_cd'])
 const items = ref([])
+const todoItems = ref([])
 const errorMsg = ref('')
 
 onMounted(async () => {
@@ -78,6 +104,9 @@ onMounted(async () => {
   } catch {
     errorMsg.value = '대시보드 데이터를 불러오지 못했습니다.'
   }
+  try {
+    todoItems.value = await getTodoList()
+  } catch {}
 })
 
 const total = computed(() => items.value.length)

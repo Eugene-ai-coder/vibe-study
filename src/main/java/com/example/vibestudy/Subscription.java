@@ -32,6 +32,9 @@ public class Subscription {
     @Column(name = "chg_dt")
     private LocalDateTime chgDt;
 
+    @Column(name = "admin_id", length = 50)
+    private String adminId;
+
     /* ── System Fields ─────────────────────────────────── */
     @Column(name = "created_by", length = 50, nullable = false)
     private String createdBy;
@@ -67,6 +70,9 @@ public class Subscription {
 
     public LocalDateTime getChgDt() { return chgDt; }
     public void setChgDt(LocalDateTime chgDt) { this.chgDt = chgDt; }
+
+    public String getAdminId() { return adminId; }
+    public void setAdminId(String adminId) { this.adminId = adminId; }
 
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }

@@ -34,6 +34,19 @@
               />
             </div>
           </div>
+
+          <!-- 미연결 화면 목록 -->
+          <div v-if="unlinkedPages.length > 0" class="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mt-2">
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">미연결 화면 ({{ unlinkedPages.length }})</span>
+            <div class="mt-2 space-y-1">
+              <div v-for="page in unlinkedPages" :key="page.path"
+                @click="handleUnlinkedPageClick(page)"
+                class="flex items-center justify-between px-2 py-1.5 text-sm rounded cursor-pointer hover:bg-blue-50 text-gray-600 hover:text-blue-600 transition-colors">
+                <span>{{ page.label }}</span>
+                <span class="text-xs text-gray-400">{{ page.path }}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- 우측: 편집 폼 -->
@@ -106,14 +119,26 @@
     <ConfirmDialog
       v-if="confirmOpen"
       message="메뉴를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+      confirm-text="삭제"
+      confirm-type="danger"
       @confirm="handleDeleteConfirm"
       @cancel="confirmOpen = false"
+    />
+
+    <ConfirmDialog
+      v-if="saveConfirmOpen"
+      :message="saveConfirmMessage"
+      confirm-text="저장"
+      confirm-type="primary"
+      @confirm="handleSaveConfirm"
+      @cancel="saveConfirmOpen = false"
     />
   </MainLayout>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { menuApi } from '../api/menuApi'
 import { commonCodeApi } from '../api/commonCodeApi'
 import { useMenuStore } from '../stores/menu'
@@ -123,7 +148,13 @@ import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import TreeNode from '../components/menu/TreeNode.vue'
 
+const router = useRouter()
 const menuStore = useMenuStore()
+
+// 라우터에서 메뉴 연결 대상 화면 자동 추출 (meta.label이 있는 라우트만)
+const ALL_PAGES = router.getRoutes()
+  .filter(r => r.meta?.label && !r.meta?.hidden)
+  .map(r => ({ path: r.path, label: r.meta.label }))
 
 const EMPTY_FORM = {
   menuId: '', menuNm: '', menuUrl: '', parentMenuId: null,
@@ -135,11 +166,28 @@ const mode = ref('view')
 const form = reactive({ ...EMPTY_FORM })
 const selectedMenuId = ref(null)
 const confirmOpen = ref(false)
+const saveConfirmOpen = ref(false)
+const saveConfirmMessage = ref('')
 const successMsg = ref('')
 const errorMsg = ref('')
 const availableRoles = ref([])
 
 const clearMessages = () => { successMsg.value = ''; errorMsg.value = '' }
+
+// 트리에서 모든 menuUrl 수집
+function collectMenuUrls(nodes) {
+  const urls = []
+  for (const node of nodes) {
+    if (node.menuUrl) urls.push(node.menuUrl)
+    if (node.children?.length) urls.push(...collectMenuUrls(node.children))
+  }
+  return urls
+}
+
+const unlinkedPages = computed(() => {
+  const usedUrls = new Set(collectMenuUrls(treeData.value))
+  return ALL_PAGES.filter(p => !usedUrls.has(p.path))
+})
 
 const parentMenuNm = computed(() => {
   if (!form.parentMenuId) return '(최상위)'
@@ -218,12 +266,18 @@ const handleAddChild = (parentNode) => {
   mode.value = 'new'
 }
 
-const handleSave = async () => {
+const handleSave = () => {
   clearMessages()
   if (!form.menuNm.trim()) {
     errorMsg.value = '메뉴명은 필수입니다.'
     return
   }
+  saveConfirmMessage.value = mode.value === 'new' ? '메뉴를 등록하시겠습니까?' : '메뉴를 수정하시겠습니까?'
+  saveConfirmOpen.value = true
+}
+
+const handleSaveConfirm = async () => {
+  saveConfirmOpen.value = false
   try {
     const payload = {
       menuNm: form.menuNm,
@@ -282,6 +336,7 @@ const handleMoveUp = async (node) => {
     await menuApi.moveUp(node.menuId)
     await fetchTree()
     await menuStore.fetchMyMenu()
+    successMsg.value = '메뉴 순서가 변경되었습니다.'
   } catch {
     errorMsg.value = '이동에 실패했습니다.'
   }
@@ -293,9 +348,17 @@ const handleMoveDown = async (node) => {
     await menuApi.moveDown(node.menuId)
     await fetchTree()
     await menuStore.fetchMyMenu()
+    successMsg.value = '메뉴 순서가 변경되었습니다.'
   } catch {
     errorMsg.value = '이동에 실패했습니다.'
   }
+}
+
+const handleUnlinkedPageClick = (page) => {
+  clearMessages()
+  selectedMenuId.value = null
+  Object.assign(form, { ...EMPTY_FORM, menuNm: page.label, menuUrl: page.path, parentMenuId: null, menuLevel: 1 })
+  mode.value = 'new'
 }
 
 const handleCancel = () => {

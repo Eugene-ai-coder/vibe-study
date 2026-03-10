@@ -94,6 +94,15 @@
       @select="handlePopupSelect"
     />
 
+    <ConfirmDialog
+      v-if="saveConfirmOpen"
+      :message="`${selectedIds.size}건을 저장하시겠습니까?`"
+      confirm-text="저장"
+      confirm-type="primary"
+      @confirm="handleBulkSaveConfirm"
+      @cancel="saveConfirmOpen = false"
+    />
+
     <FloatingActionBar>
       <label class="h-8 px-4 border border-gray-300 text-gray-600 rounded text-sm
                     cursor-pointer hover:bg-gray-50 flex items-center">
@@ -126,6 +135,7 @@ import MainLayout from '../components/common/MainLayout.vue'
 import Toast from '../components/common/Toast.vue'
 import DataGrid from '../components/common/DataGrid.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
+import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import SubscriptionSearchPopup from '../components/common/SubscriptionSearchPopup.vue'
 import { useCommonCodeLabel } from '../composables/useCommonCodeLabel'
 
@@ -164,6 +174,7 @@ const selectedIds = ref(new Set())
 const uploadedRows = ref([])
 const resultMap = ref(new Map())
 const disabledIds = ref(new Set())
+const saveConfirmOpen = ref(false)
 const popupOpen = ref(false)
 const focusedSubsId = ref(null)
 
@@ -310,6 +321,7 @@ const handleExcelDownload = async () => {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+    successMsg.value = '엑셀 다운로드가 완료되었습니다.'
   } catch {
     errorMsg.value = '엑셀 다운로드에 실패했습니다.'
   }
@@ -343,9 +355,14 @@ const handleExcelUpload = async (event) => {
   event.target.value = ''
 }
 
-const handleBulkSave = async () => {
+const handleBulkSave = () => {
   clearMessages()
   if (selectedIds.value.size === 0) { errorMsg.value = '저장할 행을 선택해 주세요.'; return }
+  saveConfirmOpen.value = true
+}
+
+const handleBulkSaveConfirm = async () => {
+  saveConfirmOpen.value = false
   try {
     const selectedItems = mergedData.value
       .filter(r => selectedIds.value.has(r.subsId))

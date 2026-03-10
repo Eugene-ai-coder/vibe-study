@@ -23,6 +23,15 @@ public class Qna {
     @Column(name = "answer_yn", length = 1)
     private String answerYn = "N";
 
+    @Column(name = "notice_yn", length = 1)
+    private String noticeYn = "N";
+
+    @Column(name = "notice_start_dt")
+    private LocalDateTime noticeStartDt;
+
+    @Column(name = "notice_end_dt")
+    private LocalDateTime noticeEndDt;
+
     /* ── System Fields ── */
     @Column(name = "created_by", length = 50, nullable = false)
     private String createdBy;
@@ -46,6 +55,12 @@ public class Qna {
     public void setViewCnt(Integer viewCnt) { this.viewCnt = viewCnt; }
     public String getAnswerYn() { return answerYn; }
     public void setAnswerYn(String answerYn) { this.answerYn = answerYn; }
+    public String getNoticeYn() { return noticeYn; }
+    public void setNoticeYn(String noticeYn) { this.noticeYn = noticeYn; }
+    public LocalDateTime getNoticeStartDt() { return noticeStartDt; }
+    public void setNoticeStartDt(LocalDateTime noticeStartDt) { this.noticeStartDt = noticeStartDt; }
+    public LocalDateTime getNoticeEndDt() { return noticeEndDt; }
+    public void setNoticeEndDt(LocalDateTime noticeEndDt) { this.noticeEndDt = noticeEndDt; }
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
     public LocalDateTime getCreatedDt() { return createdDt; }

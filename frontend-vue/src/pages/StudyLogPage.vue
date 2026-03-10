@@ -115,8 +115,19 @@
     <ConfirmDialog
       v-if="confirmDeleteId !== null"
       message="삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+      confirm-text="삭제"
+      confirm-type="danger"
       @confirm="handleDelete"
       @cancel="confirmDeleteId = null"
+    />
+
+    <ConfirmDialog
+      v-if="saveConfirmOpen"
+      :message="saveConfirmMessage"
+      confirm-text="저장"
+      confirm-type="primary"
+      @confirm="handleSaveConfirm"
+      @cancel="saveConfirmOpen = false"
     />
   </MainLayout>
 </template>
@@ -147,6 +158,11 @@ const editDate = ref('')
 const editErrors = ref([])
 const isEditing = ref(false)
 
+// 저장 확인
+const saveConfirmOpen = ref(false)
+const saveConfirmMessage = ref('')
+const saveConfirmAction = ref(null)
+
 // 삭제
 const confirmDeleteId = ref(null)
 
@@ -167,33 +183,46 @@ const fetchLogs = async () => {
 
 onMounted(fetchLogs)
 
-const handleCreate = async () => {
+const handleCreate = () => {
   formErrors.value = []
-  isSubmitting.value = true
-  try {
-    const newLog = await createLog({ content: newContent.value, date: newDate.value })
-    logs.value = [...logs.value, newLog]
-    newContent.value = ''
-    newDate.value = ''
-    successMsg.value = '등록이 완료되었습니다.'
-  } catch (err) {
-    if (err.response?.data?.errors) formErrors.value = err.response.data.errors
-    else formErrors.value = ['서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.']
-  } finally { isSubmitting.value = false }
+  saveConfirmMessage.value = '학습 내용을 등록하시겠습니까?'
+  saveConfirmAction.value = 'create'
+  saveConfirmOpen.value = true
 }
 
-const handleUpdate = async () => {
+const handleUpdate = () => {
   editErrors.value = []
-  isEditing.value = true
-  try {
-    const updated = await updateLog(editingLog.value.id, { content: editContent.value, date: editDate.value })
-    logs.value = logs.value.map(l => l.id === updated.id ? updated : l)
-    editingLog.value = null
-    successMsg.value = '수정이 완료되었습니다.'
-  } catch (err) {
-    if (err.response?.data?.errors) editErrors.value = err.response.data.errors
-    else editErrors.value = ['서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.']
-  } finally { isEditing.value = false }
+  saveConfirmMessage.value = '학습 내용을 수정하시겠습니까?'
+  saveConfirmAction.value = 'update'
+  saveConfirmOpen.value = true
+}
+
+const handleSaveConfirm = async () => {
+  saveConfirmOpen.value = false
+  if (saveConfirmAction.value === 'create') {
+    isSubmitting.value = true
+    try {
+      const newLog = await createLog({ content: newContent.value, date: newDate.value })
+      logs.value = [...logs.value, newLog]
+      newContent.value = ''
+      newDate.value = ''
+      successMsg.value = '등록이 완료되었습니다.'
+    } catch (err) {
+      if (err.response?.data?.errors) formErrors.value = err.response.data.errors
+      else formErrors.value = ['서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.']
+    } finally { isSubmitting.value = false }
+  } else {
+    isEditing.value = true
+    try {
+      const updated = await updateLog(editingLog.value.id, { content: editContent.value, date: editDate.value })
+      logs.value = logs.value.map(l => l.id === updated.id ? updated : l)
+      editingLog.value = null
+      successMsg.value = '수정이 완료되었습니다.'
+    } catch (err) {
+      if (err.response?.data?.errors) editErrors.value = err.response.data.errors
+      else editErrors.value = ['서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.']
+    } finally { isEditing.value = false }
+  }
 }
 
 const handleDelete = async () => {

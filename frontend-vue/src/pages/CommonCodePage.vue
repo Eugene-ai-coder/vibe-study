@@ -88,7 +88,7 @@
             </div>
           </div>
           <div class="flex justify-end gap-2">
-            <button @click="dtlMode = 'new'; Object.assign(dtlForm, EMPTY_DTL_FORM)"
+            <button @click="dtlMode = 'new'; Object.assign(dtlForm, { ...EMPTY_DTL_FORM, effStartDt: todayDatetime(), effEndDt: '9999-12-31T23:59' })"
               :disabled="!selectedCode"
               class="h-8 px-4 bg-blue-600 text-white text-sm rounded disabled:opacity-40 disabled:cursor-not-allowed">등록</button>
             <button @click="selectedDtl && (dtlMode = 'edit')"
@@ -174,8 +174,19 @@
     <ConfirmDialog
       v-if="dtlConfirmOpen"
       message="상세코드를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+      confirm-text="삭제"
+      confirm-type="danger"
       @confirm="handleDtlDeleteConfirm"
       @cancel="dtlConfirmOpen = false"
+    />
+
+    <ConfirmDialog
+      v-if="saveConfirmOpen"
+      :message="saveConfirmMessage"
+      confirm-text="저장"
+      confirm-type="primary"
+      @confirm="handleSaveConfirm"
+      @cancel="saveConfirmOpen = false"
     />
   </MainLayout>
 </template>
@@ -205,6 +216,8 @@ const dtlForm = reactive({ ...EMPTY_DTL_FORM })
 const codeMode = ref('view')
 const dtlMode = ref('view')
 const dtlConfirmOpen = ref(false)
+const saveConfirmOpen = ref(false)
+const saveConfirmMessage = ref('')
 const isLoading = ref(false)
 const successMsg = ref('')
 const errorMsg = ref('')
@@ -255,9 +268,11 @@ const handleDtlRowClick = (dtl) => {
   dtlMode.value = 'edit'
 }
 
+const todayDatetime = () => new Date().toISOString().slice(0, 16)
+
 const handleCodeNewClick = () => {
   codeMode.value = 'new'
-  Object.assign(codeForm, EMPTY_CODE_FORM)
+  Object.assign(codeForm, { ...EMPTY_CODE_FORM, effStartDt: todayDatetime(), effEndDt: '9999-12-31T23:59' })
 }
 
 const handleDtlDeleteConfirm = async () => {
@@ -273,7 +288,19 @@ const handleDtlDeleteConfirm = async () => {
   } catch { errorMsg.value = '상세코드 삭제에 실패했습니다.' }
 }
 
-const handleSave = async () => {
+const handleSave = () => {
+  clearMessages()
+  const parts = []
+  if (codeMode.value === 'new') parts.push('공통코드 등록')
+  else if (codeMode.value === 'edit') parts.push('공통코드 수정')
+  if (dtlMode.value === 'new') parts.push('상세코드 등록')
+  else if (dtlMode.value === 'edit') parts.push('상세코드 수정')
+  saveConfirmMessage.value = `${parts.join(', ')}을(를) 저장하시겠습니까?`
+  saveConfirmOpen.value = true
+}
+
+const handleSaveConfirm = async () => {
+  saveConfirmOpen.value = false
   clearMessages()
   const createdBy = auth.user?.userId ?? 'SYSTEM'
   try {

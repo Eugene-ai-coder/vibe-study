@@ -123,8 +123,19 @@
     <ConfirmDialog
       v-if="confirmOpen"
       message="삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+      confirm-text="삭제"
+      confirm-type="danger"
       @confirm="executeDelete"
       @cancel="confirmOpen = false"
+    />
+
+    <ConfirmDialog
+      v-if="saveConfirmOpen"
+      :message="saveConfirmMessage"
+      confirm-text="저장"
+      confirm-type="primary"
+      @confirm="handleSaveConfirmAction"
+      @cancel="saveConfirmOpen = false"
     />
   </MainLayout>
 </template>
@@ -172,6 +183,8 @@ const formData = reactive({ ...EMPTY_FORM })
 const isNew = ref(false)
 const isLoading = ref(false)
 const confirmOpen = ref(false)
+const saveConfirmOpen = ref(false)
+const saveConfirmMessage = ref('')
 const errorMsg = ref('')
 const successMsg = ref('')
 
@@ -257,12 +270,23 @@ const handleNewClick = () => {
   clearMessages()
 }
 
-const handleSaveClick = async () => {
+const handleSaveClick = () => {
   clearMessages()
   if (!formData.subsBillStdId || !formData.effStaDt || !formData.subsId) {
     errorMsg.value = '필수 항목을 입력해 주세요.'
     return
   }
+  if (isNew.value) {
+    saveConfirmMessage.value = '특수가입을 등록하시겠습니까?'
+  } else {
+    if (!selected.value) { errorMsg.value = '목록에서 항목을 선택해 주세요.'; return }
+    saveConfirmMessage.value = '특수가입을 변경하시겠습니까?'
+  }
+  saveConfirmOpen.value = true
+}
+
+const handleSaveConfirmAction = async () => {
+  saveConfirmOpen.value = false
   try {
     if (isNew.value) {
       const created = await createSpecialSubscription(toRequestDto())
@@ -271,7 +295,6 @@ const handleSaveClick = async () => {
       isNew.value = false
       successMsg.value = '저장이 완료되었습니다.'
     } else {
-      if (!selected.value) { errorMsg.value = '목록에서 항목을 선택해 주세요.'; return }
       const updated = await updateSpecialSubscription(selected.value.subsBillStdId, selected.value.effStaDt, toRequestDto())
       toFormData(updated)
       selected.value = updated

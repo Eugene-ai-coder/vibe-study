@@ -14,6 +14,25 @@
             :class="['w-full h-8 border rounded px-3 text-sm focus:outline-none focus:border-blue-400',
               (!isNew && !isEditing) ? 'border-gray-200 bg-gray-50 text-gray-500' : 'border-gray-300']" />
         </div>
+        <div class="flex items-center gap-4">
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" v-model="form.noticeYn" true-value="Y" false-value="N"
+              :disabled="!isNew && !isEditing" />
+            공지사항
+          </label>
+          <template v-if="form.noticeYn === 'Y'">
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">공지 시작일</label>
+              <input type="date" v-model="form.noticeStartDt" :readonly="!isNew && !isEditing"
+                class="h-8 px-2 border border-gray-300 rounded text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">공지 종료일</label>
+              <input type="date" v-model="form.noticeEndDt" :readonly="!isNew && !isEditing"
+                class="h-8 px-2 border border-gray-300 rounded text-sm" />
+            </div>
+          </template>
+        </div>
         <div>
           <label class="block text-xs text-gray-500 mb-1">내용</label>
           <textarea v-model="form.content" rows="8" :readonly="!isNew && !isEditing"
@@ -67,8 +86,28 @@
     <ConfirmDialog
       v-if="confirmOpen"
       message="게시글을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+      confirm-text="삭제"
+      confirm-type="danger"
       @confirm="handleDelete"
       @cancel="confirmOpen = false"
+    />
+
+    <ConfirmDialog
+      v-if="saveConfirmOpen"
+      :message="saveConfirmMessage"
+      confirm-text="저장"
+      confirm-type="primary"
+      @confirm="handleSaveConfirm"
+      @cancel="saveConfirmOpen = false"
+    />
+
+    <ConfirmDialog
+      v-if="commentDeleteConfirmOpen"
+      message="댓글을 삭제하시겠습니까?"
+      confirm-text="삭제"
+      confirm-type="danger"
+      @confirm="handleCommentDeleteConfirm"
+      @cancel="commentDeleteConfirmOpen = false"
     />
   </MainLayout>
 </template>
@@ -88,11 +127,15 @@ const router = useRouter()
 const auth = useAuthStore()
 
 const isNew = computed(() => !route.params.id)
-const form = reactive({ title: '', content: '', createdBy: '' })
+const form = reactive({ title: '', content: '', createdBy: '', noticeYn: 'N', noticeStartDt: null, noticeEndDt: null })
 const comments = ref([])
 const commentContent = ref('')
 const isEditing = ref(false)
 const confirmOpen = ref(false)
+const saveConfirmOpen = ref(false)
+const saveConfirmMessage = ref('')
+const commentDeleteConfirmOpen = ref(false)
+const commentDeleteTargetId = ref(null)
 const errorMsg = ref('')
 const successMsg = ref('')
 
@@ -116,10 +159,16 @@ const handleActionClick = () => {
   }
 }
 
-const handleSave = async () => {
+const handleSave = () => {
   errorMsg.value = ''
   if (!form.title.trim()) { errorMsg.value = '제목을 입력해 주세요.'; return }
   if (!form.content.trim()) { errorMsg.value = '내용을 입력해 주세요.'; return }
+  saveConfirmMessage.value = isNew.value ? '게시글을 등록하시겠습니까?' : '게시글을 수정하시겠습니까?'
+  saveConfirmOpen.value = true
+}
+
+const handleSaveConfirm = async () => {
+  saveConfirmOpen.value = false
   try {
     if (isNew.value) {
       await qnaApi.create({ ...form, createdBy: auth.user?.userId ?? 'SYSTEM' })
@@ -140,7 +189,8 @@ const handleDelete = async () => {
   confirmOpen.value = false
   try {
     await qnaApi.delete(route.params.id)
-    router.push('/qna')
+    successMsg.value = '게시글이 삭제되었습니다.'
+    setTimeout(() => router.push('/qna'), 500)
   } catch (err) {
     errorMsg.value = err?.response?.status === 403 ? '삭제 권한이 없습니다.' : '삭제에 실패했습니다.'
   }
@@ -152,13 +202,21 @@ const handleCommentSubmit = async () => {
     await qnaApi.createComment(route.params.id, { content: commentContent.value.trim(), createdBy: auth.user?.userId ?? 'SYSTEM' })
     comments.value = await qnaApi.getComments(route.params.id)
     commentContent.value = ''
+    successMsg.value = '댓글이 등록되었습니다.'
   } catch { errorMsg.value = '댓글 등록에 실패했습니다.' }
 }
 
-const handleCommentDelete = async (commentId) => {
+const handleCommentDelete = (commentId) => {
+  commentDeleteTargetId.value = commentId
+  commentDeleteConfirmOpen.value = true
+}
+
+const handleCommentDeleteConfirm = async () => {
+  commentDeleteConfirmOpen.value = false
   try {
-    await qnaApi.deleteComment(route.params.id, commentId)
+    await qnaApi.deleteComment(route.params.id, commentDeleteTargetId.value)
     comments.value = await qnaApi.getComments(route.params.id)
+    successMsg.value = '댓글이 삭제되었습니다.'
   } catch { errorMsg.value = '댓글 삭제에 실패했습니다.' }
 }
 </script>

@@ -36,7 +36,18 @@ const router = useRouter()
 
 const columns = [
   { key: 'qnaId', header: '번호', size: 60 },
-  { key: 'title', header: '제목', size: 300 },
+  { key: 'title', header: '제목', size: 300,
+    cell: { props: ['row'], setup(props) {
+      return () => {
+        const r = props.row
+        const isNotice = r.noticeYn === 'Y'
+          && r.noticeStartDt && r.noticeEndDt
+          && new Date() >= new Date(r.noticeStartDt)
+          && new Date() <= new Date(r.noticeEndDt)
+        return isNotice ? `[공지] ${r.title}` : r.title
+      }
+    }}
+  },
   { key: 'createdBy', header: '작성자', size: 100 },
   { key: 'createdDt', header: '작성일', size: 150 },
 ]

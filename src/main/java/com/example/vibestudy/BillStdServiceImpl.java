@@ -6,8 +6,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 
 @Service
 public class BillStdServiceImpl implements BillStdService {
@@ -15,11 +17,16 @@ public class BillStdServiceImpl implements BillStdService {
     private static final LocalDateTime DEFAULT_EFF_END_DT =
             LocalDateTime.of(9999, 12, 31, 23, 59, 59);
 
+    private static final DateTimeFormatter ID_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
     private final BillStdRepository repository;
+    private final BillStdFieldValueRepository fieldValueRepository;
 
-    public BillStdServiceImpl(BillStdRepository repository) {
+    public BillStdServiceImpl(BillStdRepository repository,
+                              BillStdFieldValueRepository fieldValueRepository) {
         this.repository = repository;
+        this.fieldValueRepository = fieldValueRepository;
     }
 
     // ── 조회 ─────────────────────────────────────────────────────
@@ -47,6 +54,14 @@ public class BillStdServiceImpl implements BillStdService {
         return toDto(list.get(0));
     }
 
+    @Override
+    public List<BillStdResponseDto> findTodoList() {
+        return repository.findByStdRegStatCdNotIn(List.of("APPROVED", "CANCEL"))
+                .stream()
+                .map(this::toDto)
+                .toList();
+    }
+
     // ── 등록 ─────────────────────────────────────────────────────
 
     @Override
@@ -66,8 +81,8 @@ public class BillStdServiceImpl implements BillStdService {
         }
 
         BillStd entity = new BillStd();
-
-        entity.setBillStdId(generateId());
+        String billStdId = generateId();
+        entity.setBillStdId(billStdId);
         entity.setSubsId(dto.getSubsId());
         entity.setBillStdRegDt(dto.getBillStdRegDt());
         entity.setSvcCd(dto.getSvcCd());
@@ -76,29 +91,20 @@ public class BillStdServiceImpl implements BillStdService {
         entity.setEffEndDt(dto.getEffEndDt() != null ? dto.getEffEndDt() : DEFAULT_EFF_END_DT);
         entity.setStdRegStatCd(dto.getStdRegStatCd());
         entity.setBillStdStatCd(dto.getBillStdStatCd());
-        entity.setPwrMetCalcMethCd(dto.getPwrMetCalcMethCd());
-        entity.setUprcDetMethCd(dto.getUprcDetMethCd());
-        entity.setMeteringUnitPriceAmt(dto.getMeteringUnitPriceAmt());
-        entity.setBillQty(dto.getBillQty());
-        entity.setPueDetMethCd(dto.getPueDetMethCd());
-        entity.setPue1Rt(dto.getPue1Rt());
-        entity.setPue2Rt(dto.getPue2Rt());
-        entity.setFirstDscRt(dto.getFirstDscRt());
-        entity.setSecondDscRt(dto.getSecondDscRt());
-        entity.setLossCompRt(dto.getLossCompRt());
-        entity.setCntrcCapKmh(dto.getCntrcCapKmh());
-        entity.setCntrcAmt(dto.getCntrcAmt());
-        entity.setDscAmt(dto.getDscAmt());
-        entity.setDailyUnitPrice(dto.getDailyUnitPrice());
         entity.setCreatedBy(SecurityUtils.getCurrentUserId());
         entity.setCreatedDt(LocalDateTime.now());
+        BillStd saved = repository.save(entity);
 
-        return toDto(repository.save(entity));
+        // 동적 필드값 저장
+        saveFieldValues(billStdId, dto.getFieldValues(), SecurityUtils.getCurrentUserId());
+
+        return toDto(saved);
     }
 
     // ── 수정 ─────────────────────────────────────────────────────
 
     @Override
+    @Transactional
     public BillStdResponseDto update(String billStdId, BillStdRequestDto dto) {
         BillStd entity = findOrThrow(billStdId);
 
@@ -110,28 +116,20 @@ public class BillStdServiceImpl implements BillStdService {
         entity.setEffEndDt(dto.getEffEndDt());
         entity.setStdRegStatCd(dto.getStdRegStatCd());
         entity.setBillStdStatCd(dto.getBillStdStatCd());
-        entity.setPwrMetCalcMethCd(dto.getPwrMetCalcMethCd());
-        entity.setUprcDetMethCd(dto.getUprcDetMethCd());
-        entity.setMeteringUnitPriceAmt(dto.getMeteringUnitPriceAmt());
-        entity.setBillQty(dto.getBillQty());
-        entity.setPueDetMethCd(dto.getPueDetMethCd());
-        entity.setPue1Rt(dto.getPue1Rt());
-        entity.setPue2Rt(dto.getPue2Rt());
-        entity.setFirstDscRt(dto.getFirstDscRt());
-        entity.setSecondDscRt(dto.getSecondDscRt());
-        entity.setLossCompRt(dto.getLossCompRt());
-        entity.setCntrcCapKmh(dto.getCntrcCapKmh());
-        entity.setCntrcAmt(dto.getCntrcAmt());
-        entity.setDscAmt(dto.getDscAmt());
-        entity.setDailyUnitPrice(dto.getDailyUnitPrice());
         entity.setUpdatedBy(SecurityUtils.getCurrentUserId());
         entity.setUpdatedDt(LocalDateTime.now());
+        BillStd saved = repository.save(entity);
 
-        return toDto(repository.save(entity));
+        // 기존 필드값 삭제 후 재저장
+        fieldValueRepository.deleteByIdBillStdId(billStdId);
+        saveFieldValues(billStdId, dto.getFieldValues(), SecurityUtils.getCurrentUserId());
+
+        return toDto(saved);
     }
 
     // ── 삭제 ─────────────────────────────────────────────────────
 
+    @Transactional
     @Override
     public void delete(String billStdId) {
         BillStd entity = findOrThrow(billStdId);
@@ -141,6 +139,7 @@ public class BillStdServiceImpl implements BillStdService {
                     HttpStatus.CONFLICT,
                     "다른 이력이 존재하여 삭제할 수 없습니다.");
         }
+        fieldValueRepository.deleteByIdBillStdId(billStdId);
         repository.deleteById(billStdId);
     }
 
@@ -153,7 +152,19 @@ public class BillStdServiceImpl implements BillStdService {
     }
 
     private String generateId() {
-        return "BS" + UUID.randomUUID().toString().replace("-", "").substring(0, 17);
+        return "BS" + LocalDateTime.now().format(ID_FORMATTER);
+    }
+
+    private void saveFieldValues(String billStdId, Map<String, String> fieldValues, String userId) {
+        if (fieldValues == null || fieldValues.isEmpty()) return;
+        for (Map.Entry<String, String> entry : fieldValues.entrySet()) {
+            BillStdFieldValue fv = new BillStdFieldValue();
+            fv.setId(new BillStdFieldValueId(billStdId, entry.getKey()));
+            fv.setFieldValue(entry.getValue());
+            fv.setCreatedBy(userId);
+            fv.setCreatedDt(LocalDateTime.now());
+            fieldValueRepository.save(fv);
+        }
     }
 
     private BillStdResponseDto toDto(BillStd e) {
@@ -167,24 +178,19 @@ public class BillStdServiceImpl implements BillStdService {
         dto.setEffEndDt(e.getEffEndDt());
         dto.setStdRegStatCd(e.getStdRegStatCd());
         dto.setBillStdStatCd(e.getBillStdStatCd());
-        dto.setPwrMetCalcMethCd(e.getPwrMetCalcMethCd());
-        dto.setUprcDetMethCd(e.getUprcDetMethCd());
-        dto.setMeteringUnitPriceAmt(e.getMeteringUnitPriceAmt());
-        dto.setBillQty(e.getBillQty());
-        dto.setPueDetMethCd(e.getPueDetMethCd());
-        dto.setPue1Rt(e.getPue1Rt());
-        dto.setPue2Rt(e.getPue2Rt());
-        dto.setFirstDscRt(e.getFirstDscRt());
-        dto.setSecondDscRt(e.getSecondDscRt());
-        dto.setLossCompRt(e.getLossCompRt());
-        dto.setCntrcCapKmh(e.getCntrcCapKmh());
-        dto.setCntrcAmt(e.getCntrcAmt());
-        dto.setDscAmt(e.getDscAmt());
-        dto.setDailyUnitPrice(e.getDailyUnitPrice());
         dto.setCreatedBy(e.getCreatedBy());
         dto.setCreatedDt(e.getCreatedDt());
         dto.setUpdatedBy(e.getUpdatedBy());
         dto.setUpdatedDt(e.getUpdatedDt());
+
+        // 동적 필드값 로드
+        List<BillStdFieldValue> values = fieldValueRepository.findByIdBillStdId(e.getBillStdId());
+        Map<String, String> fieldValues = new LinkedHashMap<>();
+        for (BillStdFieldValue fv : values) {
+            fieldValues.put(fv.getId().getFieldCd(), fv.getFieldValue());
+        }
+        dto.setFieldValues(fieldValues);
+
         return dto;
     }
 }
