@@ -1,5 +1,5 @@
 <template>
-  <MainLayout>
+  <div>
     <Toast :message="successMsg" type="success" @close="successMsg = ''" />
     <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
 
@@ -120,13 +120,12 @@
       @confirm="handleAddUsersConfirm"
       @cancel="addConfirmOpen = false"
     />
-  </MainLayout>
+  </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { roleApi } from '../api/roleApi'
-import MainLayout from '../components/common/MainLayout.vue'
 import Toast from '../components/common/Toast.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'

@@ -11,7 +11,7 @@ public class SpecialSubscription {
     @EmbeddedId
     private SpecialSubscriptionId id;
 
-    @Column(name = "subs_id", length = 20, nullable = false)
+    @Column(name = "subs_id", length = 50, nullable = false)
     private String subsId;
 
     @Column(name = "svc_cd", length = 10)
@@ -35,8 +35,8 @@ public class SpecialSubscription {
     @Column(name = "dsc_rt", precision = 18, scale = 4)
     private BigDecimal dscRt;
 
-    @Column(name = "rmk", length = 500)
-    private String rmk;
+    @Column(name = "remark", length = 500)
+    private String remark;
 
     /* ── System Fields ─────────────────────────────── */
     @Column(name = "created_by", length = 50, nullable = false)
@@ -69,8 +69,8 @@ public class SpecialSubscription {
     public void setCntrcAmt(BigDecimal cntrcAmt) { this.cntrcAmt = cntrcAmt; }
     public BigDecimal getDscRt() { return dscRt; }
     public void setDscRt(BigDecimal dscRt) { this.dscRt = dscRt; }
-    public String getRmk() { return rmk; }
-    public void setRmk(String rmk) { this.rmk = rmk; }
+    public String getRemark() { return remark; }
+    public void setRemark(String remark) { this.remark = remark; }
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
     public LocalDateTime getCreatedDt() { return createdDt; }

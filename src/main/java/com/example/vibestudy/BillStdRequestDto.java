@@ -18,7 +18,6 @@ public class BillStdRequestDto {
     private LocalDateTime effEndDt;
 
     /* ── 상태 코드 ───────────────────────────────────────────── */
-    private String stdRegStatCd;
     private String billStdStatCd;
 
     /* ── 동적 필드값 ──────────────────────────────────────────── */
@@ -47,9 +46,6 @@ public class BillStdRequestDto {
 
     public LocalDateTime getEffEndDt() { return effEndDt; }
     public void setEffEndDt(LocalDateTime effEndDt) { this.effEndDt = effEndDt; }
-
-    public String getStdRegStatCd() { return stdRegStatCd; }
-    public void setStdRegStatCd(String stdRegStatCd) { this.stdRegStatCd = stdRegStatCd; }
 
     public String getBillStdStatCd() { return billStdStatCd; }
     public void setBillStdStatCd(String billStdStatCd) { this.billStdStatCd = billStdStatCd; }

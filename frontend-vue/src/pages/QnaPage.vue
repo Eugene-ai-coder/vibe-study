@@ -1,5 +1,5 @@
 <template>
-  <MainLayout>
+  <div>
     <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
     <div class="space-y-4">
       <div class="flex items-center justify-between">
@@ -21,14 +21,13 @@
         row-id-accessor="qnaId" @row-click="(row) => router.push(`/qna/${row.qnaId}`)"
         storage-key="qnaPage" title="Q&A 목록" />
     </div>
-  </MainLayout>
+  </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { qnaApi } from '../api/qnaApi'
-import MainLayout from '../components/common/MainLayout.vue'
 import Toast from '../components/common/Toast.vue'
 import DataGrid from '../components/common/DataGrid.vue'
 

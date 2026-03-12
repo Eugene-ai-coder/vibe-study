@@ -16,7 +16,7 @@ public class BillStd {
     @Column(name = "bill_std_id", length = 20, nullable = false)
     private String billStdId;
 
-    @Column(name = "subs_id", length = 20, nullable = false)
+    @Column(name = "subs_id", length = 50, nullable = false)
     private String subsId;
 
     /* ── 등록·유효 제어 ──────────────────────────────────────── */
@@ -36,9 +36,6 @@ public class BillStd {
     private LocalDateTime effEndDt;
 
     /* ── 상태 코드 ───────────────────────────────────────────── */
-    @Column(name = "std_reg_stat_cd", length = 10)
-    private String stdRegStatCd;
-
     @Column(name = "bill_std_stat_cd", length = 10)
     private String billStdStatCd;
 
@@ -77,9 +74,6 @@ public class BillStd {
 
     public LocalDateTime getEffEndDt() { return effEndDt; }
     public void setEffEndDt(LocalDateTime effEndDt) { this.effEndDt = effEndDt; }
-
-    public String getStdRegStatCd() { return stdRegStatCd; }
-    public void setStdRegStatCd(String stdRegStatCd) { this.stdRegStatCd = stdRegStatCd; }
 
     public String getBillStdStatCd() { return billStdStatCd; }
     public void setBillStdStatCd(String billStdStatCd) { this.billStdStatCd = billStdStatCd; }

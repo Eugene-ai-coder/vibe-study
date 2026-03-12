@@ -1,5 +1,5 @@
 <template>
-  <MainLayout>
+  <div>
     <Toast :message="successMsg" type="success" @close="successMsg = ''" />
     <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
 
@@ -109,7 +109,7 @@
       @confirm="handleCommentDeleteConfirm"
       @cancel="commentDeleteConfirmOpen = false"
     />
-  </MainLayout>
+  </div>
 </template>
 
 <script setup>
@@ -117,7 +117,6 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { qnaApi } from '../api/qnaApi'
-import MainLayout from '../components/common/MainLayout.vue'
 import Toast from '../components/common/Toast.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'

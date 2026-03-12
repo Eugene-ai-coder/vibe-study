@@ -24,3 +24,16 @@
 | 유효시작일시 | `eff_start_dt` | TIMESTAMP | 해당 기준의 적용 시작 시점 |
 | 유효종료일시 | `eff_end_dt` | TIMESTAMP | 기본값 `9999-12-31 23:59:59` |
 | 이력화 | — | — | 신규 등록 시 기존 Y 레코드를 N으로 변경하는 처리 |
+
+---
+
+## 3. 컬럼 네이밍 규칙
+
+| 규칙 | 예시 | 비고 |
+|---|---|---|
+| DB 컬럼: `snake_case`, 단어 축약 금지 | `eff_start_dt` (O) / `eff_sta_dt` (X) | `start`→`sta` 등 임의 축약 금지 |
+| Java 필드: `camelCase`, DB 컬럼과 1:1 대응 | `effStartDt` ↔ `eff_start_dt` | getter/setter도 동일 규칙 |
+| JS/Vue 키: Java DTO의 JSON 직렬화명과 동일 | `effStartDt` | 프론트↔백엔드 필드명 일치 |
+| 유효기간 쌍: 반드시 `eff_start_dt` / `eff_end_dt` | — | start/end 대칭 유지 |
+
+> **원칙:** 새 컬럼 추가 시 이 용어 사전에 먼저 등록. 기존 컬럼과 동일 개념이면 반드시 같은 이름 사용.

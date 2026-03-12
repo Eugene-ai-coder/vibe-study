@@ -7,27 +7,27 @@ import java.util.Objects;
 @Embeddable
 public class SpecialSubscriptionId implements Serializable {
     private String subsBillStdId;
-    private String effStaDt;
+    private String effStartDt;
 
     public SpecialSubscriptionId() {}
-    public SpecialSubscriptionId(String subsBillStdId, String effStaDt) {
+    public SpecialSubscriptionId(String subsBillStdId, String effStartDt) {
         this.subsBillStdId = subsBillStdId;
-        this.effStaDt = effStaDt;
+        this.effStartDt = effStartDt;
     }
 
     public String getSubsBillStdId() { return subsBillStdId; }
     public void setSubsBillStdId(String subsBillStdId) { this.subsBillStdId = subsBillStdId; }
-    public String getEffStaDt() { return effStaDt; }
-    public void setEffStaDt(String effStaDt) { this.effStaDt = effStaDt; }
+    public String getEffStartDt() { return effStartDt; }
+    public void setEffStartDt(String effStartDt) { this.effStartDt = effStartDt; }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof SpecialSubscriptionId)) return false;
         SpecialSubscriptionId that = (SpecialSubscriptionId) o;
-        return Objects.equals(subsBillStdId, that.subsBillStdId) && Objects.equals(effStaDt, that.effStaDt);
+        return Objects.equals(subsBillStdId, that.subsBillStdId) && Objects.equals(effStartDt, that.effStartDt);
     }
 
     @Override
-    public int hashCode() { return Objects.hash(subsBillStdId, effStaDt); }
+    public int hashCode() { return Objects.hash(subsBillStdId, effStartDt); }
 }

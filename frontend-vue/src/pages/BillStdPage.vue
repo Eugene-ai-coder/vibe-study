@@ -1,5 +1,5 @@
 <template>
-  <MainLayout>
+  <div>
     <Toast :message="successMsg" type="success" @close="successMsg = ''" />
     <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
 
@@ -41,31 +41,28 @@
             <input v-model="formData.subsId" readonly class="w-full h-8 px-2 border border-gray-200 rounded text-sm bg-gray-50 text-gray-400" />
           </div>
           <div>
+            <label class="block text-xs text-gray-500 mb-1">관리자</label>
+            <input :value="subsAdminId" readonly class="w-full h-8 px-2 border border-gray-200 rounded text-sm bg-gray-50 text-gray-400" />
+          </div>
+          <div>
             <label class="block text-xs text-gray-500 mb-1">서비스</label>
             <CommonCodeSelect common-code="svc_cd" v-model="formData.svcCd" @update:modelValue="handleSvcCdChange" :disabled="!!formData.subsId" />
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">적용시작일</label>
-            <input v-model="formData.effStartDt" class="w-full h-8 px-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-400" />
+            <input v-model="formData.effStartDt" readonly class="w-full h-8 px-2 border border-gray-200 rounded text-sm bg-gray-50 text-gray-400" />
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">적용종료일</label>
-            <input v-model="formData.effEndDt" class="w-full h-8 px-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-400" />
+            <input v-model="formData.effEndDt" readonly class="w-full h-8 px-2 border border-gray-200 rounded text-sm bg-gray-50 text-gray-400" />
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">최종적용여부</label>
-            <select v-model="formData.lastEffYn" class="w-full h-8 px-2 border border-gray-300 rounded text-sm bg-white">
-              <option value="Y">Y</option>
-              <option value="N">N</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">등록진행상태</label>
-            <CommonCodeSelect common-code="std_reg_stat_cd" v-model="formData.stdRegStatCd" />
+            <input v-model="formData.lastEffYn" readonly class="w-full h-8 px-2 border border-gray-200 rounded text-sm bg-gray-50 text-gray-400" />
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">과금기준상태</label>
-            <CommonCodeSelect common-code="bill_std_stat_cd" v-model="formData.billStdStatCd" />
+            <CommonCodeSelect common-code="bill_std_stat_cd" v-model="formData.billStdStatCd" disabled />
           </div>
         </div>
       </div>
@@ -122,17 +119,16 @@
       @confirm="handleSaveConfirm"
       @cancel="saveConfirmOpen = false"
     />
-  </MainLayout>
+  </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { getBillStdBySubsId, getBillStd, createBillStd, updateBillStd, deleteBillStd } from '../api/billStdApi'
 import { getEffectiveConfigs } from '../api/billStdFieldConfigApi'
 import { getSubscription } from '../api/subscriptionApi'
-import MainLayout from '../components/common/MainLayout.vue'
 import Toast from '../components/common/Toast.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
@@ -144,7 +140,7 @@ const route = useRoute()
 const EMPTY_FORM = {
   billStdId: '', subsId: '', svcCd: '', lastEffYn: 'Y',
   effStartDt: '', effEndDt: '',
-  stdRegStatCd: '', billStdStatCd: '',
+  billStdStatCd: '',
   fieldValues: {},
 }
 
@@ -159,6 +155,7 @@ const saveConfirmMessage = ref('')
 const saveConfirmAction = ref(null)
 const isSearching = ref(false)
 const fieldConfigs = ref([])
+const subsAdminId = ref('')
 
 const clearMessages = () => { errorMsg.value = ''; successMsg.value = '' }
 
@@ -180,7 +177,6 @@ const toFormData = (dto) => {
   formData.lastEffYn = dto.lastEffYn ?? 'Y'
   formData.effStartDt = dto.effStartDt ?? ''
   formData.effEndDt = dto.effEndDt ?? ''
-  formData.stdRegStatCd = dto.stdRegStatCd ?? ''
   formData.billStdStatCd = dto.billStdStatCd ?? ''
   formData.fieldValues = dto.fieldValues ?? {}
 }
@@ -191,7 +187,6 @@ const toRequestDto = () => ({
   lastEffYn: formData.lastEffYn,
   effStartDt: formData.effStartDt,
   effEndDt: formData.effEndDt,
-  stdRegStatCd: formData.stdRegStatCd,
   billStdStatCd: formData.billStdStatCd,
   fieldValues: { ...formData.fieldValues },
   createdBy: auth.user?.userId ?? 'SYSTEM',
@@ -203,15 +198,28 @@ const handleSearch = async () => {
   isSearching.value = true
   try {
     if (searchType.value === 'subsId') {
+      const subsId = keyword.value.trim()
+      const subs = await getSubscription(subsId)
+      subsAdminId.value = subs.adminNickname || subs.adminId || ''
       try {
-        const found = await getBillStdBySubsId(keyword.value.trim())
+        const found = await getBillStdBySubsId(subsId)
         toFormData(found)
         await loadFieldConfigs(found.svcCd)
       } catch (billErr) {
         if (billErr?.response?.status === 404) {
-          // 과금기준 없으면 가입정보만 로드
-          const subs = await getSubscription(keyword.value.trim())
-          Object.assign(formData, { ...EMPTY_FORM, subsId: subs.subsId, svcCd: subs.svcCd || '', fieldValues: {} })
+          const now = new Date()
+          const pad = (n) => String(n).padStart(2, '0')
+          const nowIso = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
+          Object.assign(formData, {
+            ...EMPTY_FORM,
+            subsId: subs.subsId,
+            svcCd: subs.svcCd || '',
+            effStartDt: nowIso,
+            effEndDt: '9999-12-31T23:59:59',
+            lastEffYn: 'Y',
+            billStdStatCd: 'ACTIVE',
+            fieldValues: {},
+          })
           await loadFieldConfigs(subs.svcCd)
         } else {
           throw billErr
@@ -221,12 +229,17 @@ const handleSearch = async () => {
       const found = await getBillStd(keyword.value.trim())
       toFormData(found)
       await loadFieldConfigs(found.svcCd)
+      try {
+        const subs = await getSubscription(found.subsId)
+        subsAdminId.value = subs.adminNickname || subs.adminId || ''
+      } catch { subsAdminId.value = '' }
     }
     successMsg.value = '조회가 완료되었습니다.'
   } catch (err) {
     errorMsg.value = err?.response?.status === 404 ? '조회 결과가 없습니다.' : '서버와 연결할 수 없습니다.'
     Object.assign(formData, { ...EMPTY_FORM, fieldValues: {} })
     fieldConfigs.value = []
+    subsAdminId.value = ''
   } finally { isSearching.value = false }
 }
 
@@ -276,18 +289,18 @@ const executeDelete = async () => {
     await deleteBillStd(formData.billStdId)
     Object.assign(formData, EMPTY_FORM)
     fieldConfigs.value = []
+    subsAdminId.value = ''
     successMsg.value = '삭제가 완료되었습니다.'
   } catch (err) {
     errorMsg.value = err?.response?.status === 409 ? '다른 이력이 존재하여 삭제할 수 없습니다.' : '삭제에 실패했습니다.'
   }
 }
 
-onMounted(() => {
-  const subsId = route.query.subsId
+watch(() => route.query.subsId, (subsId) => {
   if (subsId) {
     searchType.value = 'subsId'
     keyword.value = subsId
     handleSearch()
   }
-})
+}, { immediate: true })
 </script>

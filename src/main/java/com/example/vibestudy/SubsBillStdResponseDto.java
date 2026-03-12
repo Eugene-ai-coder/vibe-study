@@ -8,19 +8,17 @@ public class SubsBillStdResponseDto {
     private String subsStatusCd;
     private String billStdId;
     private String billStdNm;
-    private String stdRegStatCd;
     private LocalDateTime effStartDt;
     private LocalDateTime effEndDt;
 
     public SubsBillStdResponseDto(String subsId, String subsNm, String subsStatusCd,
-            String billStdId, String billStdNm, String stdRegStatCd,
+            String billStdId, String billStdNm,
             LocalDateTime effStartDt, LocalDateTime effEndDt) {
         this.subsId = subsId;
         this.subsNm = subsNm;
         this.subsStatusCd = subsStatusCd;
         this.billStdId = billStdId;
         this.billStdNm = billStdNm;
-        this.stdRegStatCd = stdRegStatCd;
         this.effStartDt = effStartDt;
         this.effEndDt = effEndDt;
     }
@@ -39,9 +37,6 @@ public class SubsBillStdResponseDto {
 
     public String getBillStdNm() { return billStdNm; }
     public void setBillStdNm(String billStdNm) { this.billStdNm = billStdNm; }
-
-    public String getStdRegStatCd() { return stdRegStatCd; }
-    public void setStdRegStatCd(String stdRegStatCd) { this.stdRegStatCd = stdRegStatCd; }
 
     public LocalDateTime getEffStartDt() { return effStartDt; }
     public void setEffStartDt(LocalDateTime effStartDt) { this.effStartDt = effStartDt; }

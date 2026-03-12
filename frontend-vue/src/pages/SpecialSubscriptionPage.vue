@@ -1,5 +1,5 @@
 <template>
-  <MainLayout>
+  <div>
     <Toast :message="successMsg" type="success" @close="successMsg = ''" />
     <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
 
@@ -57,7 +57,7 @@
             </div>
             <div>
               <label class="block text-xs text-gray-500 mb-1">유효시작일 <span class="text-blue-400">*</span></label>
-              <input v-model="formData.effStaDt" :readonly="!isNew"
+              <input v-model="formData.effStartDt" :readonly="!isNew"
                 :class="fieldClass(!isNew)" />
             </div>
             <div>
@@ -105,7 +105,7 @@
         <!-- 비고 -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">비고</h3>
-          <textarea v-model="formData.rmk"
+          <textarea v-model="formData.remark"
             class="w-full h-20 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-400 resize-none" />
         </div>
       </div>
@@ -137,7 +137,7 @@
       @confirm="handleSaveConfirmAction"
       @cancel="saveConfirmOpen = false"
     />
-  </MainLayout>
+  </div>
 </template>
 
 <script setup>
@@ -147,11 +147,11 @@ import {
   getSpecialSubscriptions, createSpecialSubscription,
   updateSpecialSubscription, deleteSpecialSubscription,
 } from '../api/specialSubscriptionApi'
-import MainLayout from '../components/common/MainLayout.vue'
 import Toast from '../components/common/Toast.vue'
 import DataGrid from '../components/common/DataGrid.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
+import { fieldClass } from '../composables/useFieldClass'
 import CommonCodeSelect from '../components/common/CommonCodeSelect.vue'
 import { useCommonCodeLabel } from '../composables/useCommonCodeLabel'
 
@@ -159,14 +159,14 @@ const auth = useAuthStore()
 const { getLabel } = useCommonCodeLabel(['svc_cd', 'spec_subs_stat_cd'])
 
 const EMPTY_FORM = {
-  subsBillStdId: '', effStaDt: '', subsId: '', svcCd: '',
+  subsBillStdId: '', effStartDt: '', subsId: '', svcCd: '',
   effEndDt: '', lastEffYn: '', specSubsStatCd: '',
-  cntrcCapKmh: '', cntrcAmt: '', dscRt: '', rmk: '',
+  cntrcCapKmh: '', cntrcAmt: '', dscRt: '', remark: '',
 }
 
 const columns = computed(() => [
   { key: 'subsBillStdId', header: '가입별과금기준ID', size: 160 },
-  { key: 'effStaDt', header: '유효시작일', size: 100 },
+  { key: 'effStartDt', header: '유효시작일', size: 100 },
   { key: 'subsId', header: '가입ID', size: 140 },
   { key: 'svcCd', header: '서비스', size: 100,
     cell: { props: ['value'], setup(props) { return () => getLabel('svc_cd', props.value) } } },
@@ -194,17 +194,12 @@ const totalElements = ref(0)
 const pageSize = 10
 
 const selectedId = computed(() =>
-  selected.value ? `${selected.value.subsBillStdId}__${selected.value.effStaDt}` : null
+  selected.value ? `${selected.value.subsBillStdId}__${selected.value.effStartDt}` : null
 )
 
 const dataWithRowId = computed(() =>
-  items.value.map(item => ({ ...item, _rowId: `${item.subsBillStdId}__${item.effStaDt}` }))
+  items.value.map(item => ({ ...item, _rowId: `${item.subsBillStdId}__${item.effStartDt}` }))
 )
-
-const fieldClass = (readOnly) => [
-  'w-full h-8 border rounded px-2 text-sm',
-  readOnly ? 'bg-gray-50 text-gray-400 border-gray-200' : 'bg-white border-gray-300 focus:outline-none focus:border-blue-400',
-]
 
 const toFormData = (dto) => {
   Object.keys(EMPTY_FORM).forEach(key => {
@@ -214,7 +209,7 @@ const toFormData = (dto) => {
 
 const toRequestDto = () => ({
   subsBillStdId: formData.subsBillStdId || null,
-  effStaDt: formData.effStaDt || null,
+  effStartDt: formData.effStartDt || null,
   subsId: formData.subsId || null,
   svcCd: formData.svcCd || null,
   effEndDt: formData.effEndDt || null,
@@ -223,7 +218,7 @@ const toRequestDto = () => ({
   cntrcCapKmh: formData.cntrcCapKmh ? parseFloat(formData.cntrcCapKmh) : null,
   cntrcAmt: formData.cntrcAmt ? parseFloat(formData.cntrcAmt) : null,
   dscRt: formData.dscRt ? parseFloat(formData.dscRt) : null,
-  rmk: formData.rmk || null,
+  remark: formData.remark || null,
 })
 
 const clearMessages = () => { errorMsg.value = ''; successMsg.value = '' }
@@ -272,7 +267,7 @@ const handleNewClick = () => {
 
 const handleSaveClick = () => {
   clearMessages()
-  if (!formData.subsBillStdId || !formData.effStaDt || !formData.subsId) {
+  if (!formData.subsBillStdId || !formData.effStartDt || !formData.subsId) {
     errorMsg.value = '필수 항목을 입력해 주세요.'
     return
   }
@@ -295,7 +290,7 @@ const handleSaveConfirmAction = async () => {
       isNew.value = false
       successMsg.value = '저장이 완료되었습니다.'
     } else {
-      const updated = await updateSpecialSubscription(selected.value.subsBillStdId, selected.value.effStaDt, toRequestDto())
+      const updated = await updateSpecialSubscription(selected.value.subsBillStdId, selected.value.effStartDt, toRequestDto())
       toFormData(updated)
       selected.value = updated
       successMsg.value = '변경이 완료되었습니다.'
@@ -318,7 +313,7 @@ const handleDeleteClick = () => {
 const executeDelete = async () => {
   confirmOpen.value = false
   try {
-    await deleteSpecialSubscription(selected.value.subsBillStdId, selected.value.effStaDt)
+    await deleteSpecialSubscription(selected.value.subsBillStdId, selected.value.effStartDt)
     selected.value = null
     Object.assign(formData, EMPTY_FORM)
     isNew.value = false

@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public class SpecialSubscriptionRequestDto {
     private String subsBillStdId;
-    private String effStaDt;
+    private String effStartDt;
     private String subsId;
     private String svcCd;
     private String effEndDt;
@@ -13,13 +13,13 @@ public class SpecialSubscriptionRequestDto {
     private BigDecimal cntrcCapKmh;
     private BigDecimal cntrcAmt;
     private BigDecimal dscRt;
-    private String rmk;
+    private String remark;
     private String createdBy;  // INSERT → created_by, UPDATE → updated_by
 
     public String getSubsBillStdId() { return subsBillStdId; }
     public void setSubsBillStdId(String subsBillStdId) { this.subsBillStdId = subsBillStdId; }
-    public String getEffStaDt() { return effStaDt; }
-    public void setEffStaDt(String effStaDt) { this.effStaDt = effStaDt; }
+    public String getEffStartDt() { return effStartDt; }
+    public void setEffStartDt(String effStartDt) { this.effStartDt = effStartDt; }
     public String getSubsId() { return subsId; }
     public void setSubsId(String subsId) { this.subsId = subsId; }
     public String getSvcCd() { return svcCd; }
@@ -36,8 +36,8 @@ public class SpecialSubscriptionRequestDto {
     public void setCntrcAmt(BigDecimal cntrcAmt) { this.cntrcAmt = cntrcAmt; }
     public BigDecimal getDscRt() { return dscRt; }
     public void setDscRt(BigDecimal dscRt) { this.dscRt = dscRt; }
-    public String getRmk() { return rmk; }
-    public void setRmk(String rmk) { this.rmk = rmk; }
+    public String getRemark() { return remark; }
+    public void setRemark(String remark) { this.remark = remark; }
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
 }

@@ -12,6 +12,7 @@ public class SubscriptionResponseDto {
     private LocalDateTime subsDt;
     private LocalDateTime chgDt;
     private String        adminId;
+    private String        adminNickname;
     private String        createdBy;
     private LocalDateTime createdDt;
     private String        updatedBy;
@@ -42,6 +43,9 @@ public class SubscriptionResponseDto {
 
     public String getAdminId() { return adminId; }
     public void setAdminId(String adminId) { this.adminId = adminId; }
+
+    public String getAdminNickname() { return adminNickname; }
+    public void setAdminNickname(String adminNickname) { this.adminNickname = adminNickname; }
 
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }

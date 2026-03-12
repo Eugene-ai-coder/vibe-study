@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 
@@ -14,13 +15,19 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     private final SubscriptionRepository repository;
     private final BillStdRepository billStdRepository;
     private final SubscriptionMainRepository subscriptionMainRepository;
+    private final TodoService todoService;
+    private final UserRepository userRepository;
 
     public SubscriptionServiceImpl(SubscriptionRepository repository,
                                    BillStdRepository billStdRepository,
-                                   SubscriptionMainRepository subscriptionMainRepository) {
+                                   SubscriptionMainRepository subscriptionMainRepository,
+                                   TodoService todoService,
+                                   UserRepository userRepository) {
         this.repository = repository;
         this.billStdRepository = billStdRepository;
         this.subscriptionMainRepository = subscriptionMainRepository;
+        this.todoService = todoService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -51,6 +58,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Override
+    @Transactional
     public SubscriptionResponseDto create(SubscriptionRequestDto dto) {
         if (repository.existsById(dto.getSubsId())) {
             throw new ResponseStatusException(
@@ -67,10 +75,13 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         entity.setAdminId(dto.getAdminId());
         entity.setCreatedBy(SecurityUtils.getCurrentUserId());
         entity.setCreatedDt(LocalDateTime.now());
-        return toDto(repository.save(entity));
+        Subscription saved = repository.save(entity);
+        handleTodo(saved);
+        return toDto(saved);
     }
 
     @Override
+    @Transactional
     public SubscriptionResponseDto update(String subsId, SubscriptionRequestDto dto) {
         Subscription entity = findOrThrow(subsId);
         // subsId / createdBy / createdDt 변경 불가
@@ -83,7 +94,9 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         entity.setAdminId(dto.getAdminId());
         entity.setUpdatedBy(SecurityUtils.getCurrentUserId());
         entity.setUpdatedDt(LocalDateTime.now());
-        return toDto(repository.save(entity));
+        Subscription saved = repository.save(entity);
+        handleTodo(saved);
+        return toDto(saved);
     }
 
     @Override
@@ -99,6 +112,15 @@ public class SubscriptionServiceImpl implements SubscriptionService {
                 HttpStatus.CONFLICT, "대표가입정보가 존재하는 가입은 삭제할 수 없습니다.");
         }
         repository.deleteById(subsId);
+    }
+
+    private void handleTodo(Subscription entity) {
+        if ("PENDING".equals(entity.getSubsStatusCd())) {
+            todoService.createTodo("SUBSCRIPTION", entity.getSubsId(), null,
+                    entity.getAdminId(), "가입 검토 요청: " + entity.getSubsId());
+        } else {
+            todoService.completeTodo("SUBSCRIPTION", entity.getSubsId(), null);
+        }
     }
 
     private Subscription findOrThrow(String subsId) {
@@ -117,6 +139,10 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         dto.setSubsDt(e.getSubsDt());
         dto.setChgDt(e.getChgDt());
         dto.setAdminId(e.getAdminId());
+        if (e.getAdminId() != null) {
+            userRepository.findById(e.getAdminId())
+                .ifPresent(u -> dto.setAdminNickname(u.getNickname()));
+        }
         dto.setCreatedBy(e.getCreatedBy());
         dto.setCreatedDt(e.getCreatedDt());
         dto.setUpdatedBy(e.getUpdatedBy());

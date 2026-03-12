@@ -1,5 +1,5 @@
 <template>
-  <MainLayout>
+  <div>
     <Toast :message="successMsg" type="success" @close="successMsg = ''" />
     <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
 
@@ -76,14 +76,13 @@
       @confirm="handleRegisterConfirm"
       @cancel="saveConfirmOpen = false"
     />
-  </MainLayout>
+  </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { getUsersPage, register } from '../api/authApi'
-import MainLayout from '../components/common/MainLayout.vue'
 import Toast from '../components/common/Toast.vue'
 import DataGrid from '../components/common/DataGrid.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'

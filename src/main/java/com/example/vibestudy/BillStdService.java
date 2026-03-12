@@ -21,7 +21,4 @@ public interface BillStdService {
 
     /** 삭제 — 존재하지 않으면 예외 */
     void delete(String billStdId);
-
-    /** TODO 목록 — APPROVED, CANCEL 상태 제외 */
-    List<BillStdResponseDto> findTodoList();
 }

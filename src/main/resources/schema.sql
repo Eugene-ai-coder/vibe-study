@@ -30,13 +30,12 @@ CREATE TABLE IF NOT EXISTS tb_subscription
 CREATE TABLE IF NOT EXISTS tb_bill_std
 (
     bill_std_id             VARCHAR(20)    NOT NULL,               -- 과금기준ID
-    subs_id                 VARCHAR(20)    NOT NULL,               -- 가입ID
+    subs_id                 VARCHAR(50)    NOT NULL,               -- 가입ID
     bill_std_reg_dt         DATETIME       NULL,                   -- 과금기준등록일시
     svc_cd                  VARCHAR(10)    NULL,                   -- 서비스코드
     last_eff_yn             CHAR(1)        DEFAULT 'Y',            -- 최종유효여부
     eff_start_dt            DATETIME       NULL,                   -- 유효시작일시
     eff_end_dt              DATETIME       DEFAULT '9999-12-31 23:59:59',  -- 유효종료일시
-    std_reg_stat_cd         VARCHAR(10)    NULL,                   -- 과금기준등록진행상태코드
     bill_std_stat_cd        VARCHAR(10)    NULL,                   -- 과금기준상태코드
     created_by              VARCHAR(50)    NOT NULL,
     created_dt              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -130,7 +129,7 @@ CREATE TABLE IF NOT EXISTS tb_qna
     title               VARCHAR(200)    NULL,
     content             TEXT            NULL,
     view_cnt            INTEGER         DEFAULT 0,
-    answer_yn           VARCHAR(1)      DEFAULT 'N',
+    answer_yn           CHAR(1)         DEFAULT 'N',
     notice_yn           CHAR(1)         DEFAULT 'N',
     notice_start_dt     DATETIME        NULL,
     notice_end_dt       DATETIME        NULL,
@@ -164,21 +163,21 @@ CREATE TABLE IF NOT EXISTS tb_qna_comment
 CREATE TABLE IF NOT EXISTS tb_special_subscription
 (
     subs_bill_std_id        VARCHAR(20)    NOT NULL,
-    eff_sta_dt              VARCHAR(8)     NOT NULL,
-    subs_id                 VARCHAR(20)    NOT NULL,
+    eff_start_dt            VARCHAR(8)     NOT NULL,
+    subs_id                 VARCHAR(50)    NOT NULL,
     svc_cd                  VARCHAR(10)    NULL,
     eff_end_dt              VARCHAR(8)     DEFAULT '99991231',
-    last_eff_yn             VARCHAR(1)     NULL,
+    last_eff_yn             CHAR(1)        NULL,
     spec_subs_stat_cd       VARCHAR(10)    NULL,
     cntrc_cap_kmh           DECIMAL(18,4)  NULL,
     cntrc_amt               DECIMAL(18,2)  NULL,
     dsc_rt                  DECIMAL(18,4)  NULL,
-    rmk                     VARCHAR(500)   NULL,
+    remark                  VARCHAR(500)   NULL,
     created_by              VARCHAR(50)    NOT NULL,
     created_dt              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by              VARCHAR(50)    NULL,
     updated_dt              DATETIME       NULL,
-    CONSTRAINT pk_tb_special_subscription PRIMARY KEY (subs_bill_std_id, eff_sta_dt)
+    CONSTRAINT pk_tb_special_subscription PRIMARY KEY (subs_bill_std_id, eff_start_dt)
 );
 
 -- ================================================================
@@ -230,3 +229,323 @@ CREATE TABLE IF NOT EXISTS tb_menu_role
     CONSTRAINT pk_tb_menu_role PRIMARY KEY (menu_id, role_cd),
     CONSTRAINT fk_tb_menu_role_menu FOREIGN KEY (menu_id) REFERENCES tb_menu (menu_id)
 );
+
+-- ================================================================
+-- 테이블명 : TB_WF_PROCESS_DEF (워크플로우 프로세스 정의)
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_wf_process_def
+(
+    process_def_id      VARCHAR(30)    NOT NULL,               -- 프로세스정의ID
+    process_nm          VARCHAR(100)   NOT NULL,               -- 프로세스명
+    process_desc        VARCHAR(500)   NULL,                   -- 프로세스설명
+    entity_type         VARCHAR(50)    NULL,                   -- 업무유형 (SUBSCRIPTION, QNA 등)
+    use_yn              CHAR(1)        DEFAULT 'Y',            -- 사용여부
+    created_by          VARCHAR(50)    NOT NULL,
+    created_dt          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by          VARCHAR(50)    NULL,
+    updated_dt          DATETIME       NULL,
+    CONSTRAINT pk_tb_wf_process_def PRIMARY KEY (process_def_id)
+);
+CREATE INDEX idx_tb_wf_process_def_entity ON tb_wf_process_def (entity_type, use_yn);
+
+-- ================================================================
+-- 테이블명 : TB_WF_STATE_DEF (워크플로우 상태 정의)
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_wf_state_def
+(
+    state_def_id        VARCHAR(30)    NOT NULL,               -- 상태정의ID
+    process_def_id      VARCHAR(30)    NOT NULL,               -- 프로세스정의ID
+    state_nm            VARCHAR(100)   NOT NULL,               -- 상태명
+    state_type          VARCHAR(20)    NOT NULL,               -- 상태유형 (START/NORMAL/END)
+    sort_order          INTEGER        DEFAULT 0,              -- 정렬순서
+    entity_status_cd    VARCHAR(50)    NULL,                    -- 엔티티상태코드
+    created_by          VARCHAR(50)    NOT NULL,
+    created_dt          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by          VARCHAR(50)    NULL,
+    updated_dt          DATETIME       NULL,
+    CONSTRAINT pk_tb_wf_state_def PRIMARY KEY (state_def_id),
+    CONSTRAINT fk_tb_wf_state_def_process FOREIGN KEY (process_def_id) REFERENCES tb_wf_process_def (process_def_id)
+);
+CREATE INDEX idx_tb_wf_state_def_process ON tb_wf_state_def (process_def_id);
+
+-- ================================================================
+-- 테이블명 : TB_WF_TRANSITION_DEF (워크플로우 전이 정의)
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_wf_transition_def
+(
+    transition_def_id   VARCHAR(30)    NOT NULL,               -- 전이정의ID
+    process_def_id      VARCHAR(30)    NOT NULL,               -- 프로세스정의ID
+    from_state_def_id   VARCHAR(30)    NOT NULL,               -- 출발상태ID
+    to_state_def_id     VARCHAR(30)    NOT NULL,               -- 도착상태ID
+    transition_code     VARCHAR(50)    NULL,                   -- 전이코드 (APPROVE/REJECT/SUBMIT)
+    event_nm            VARCHAR(100)   NULL,                   -- 이벤트명 (버튼 레이블 등)
+    sort_order          INTEGER        DEFAULT 0,              -- 정렬순서
+    created_by          VARCHAR(50)    NOT NULL,
+    created_dt          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by          VARCHAR(50)    NULL,
+    updated_dt          DATETIME       NULL,
+    CONSTRAINT pk_tb_wf_transition_def PRIMARY KEY (transition_def_id),
+    CONSTRAINT fk_tb_wf_transition_def_process FOREIGN KEY (process_def_id) REFERENCES tb_wf_process_def (process_def_id),
+    CONSTRAINT fk_tb_wf_transition_def_from FOREIGN KEY (from_state_def_id) REFERENCES tb_wf_state_def (state_def_id),
+    CONSTRAINT fk_tb_wf_transition_def_to FOREIGN KEY (to_state_def_id) REFERENCES tb_wf_state_def (state_def_id)
+);
+CREATE INDEX idx_tb_wf_transition_def_process ON tb_wf_transition_def (process_def_id);
+CREATE INDEX idx_tb_wf_transition_def_from_code ON tb_wf_transition_def (from_state_def_id, transition_code);
+
+-- ================================================================
+-- 테이블명 : TB_WF_TASK_TEMPLATE (워크플로우 Task 템플릿)
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_wf_task_template
+(
+    task_template_id    VARCHAR(30)    NOT NULL,               -- Task템플릿ID
+    state_def_id        VARCHAR(30)    NOT NULL,               -- 상태정의ID
+    task_nm             VARCHAR(100)   NOT NULL,               -- Task명
+    task_desc           VARCHAR(500)   NULL,                   -- Task설명
+    assignee_type       VARCHAR(20)    NULL,                   -- 담당자유형 (ROLE/USER/AUTO)
+    assignee_value      VARCHAR(50)    NULL,                   -- 담당자값
+    task_type           VARCHAR(20)    NULL,                   -- Task유형 (REVIEW/APPROVAL/DATA_ENTRY)
+    priority            INTEGER        DEFAULT 5,              -- 우선순위 (1~10)
+    sla_hours           INTEGER        NULL,                   -- SLA(시간)
+    sort_order          INTEGER        DEFAULT 0,              -- 정렬순서
+    created_by          VARCHAR(50)    NOT NULL,
+    created_dt          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by          VARCHAR(50)    NULL,
+    updated_dt          DATETIME       NULL,
+    CONSTRAINT pk_tb_wf_task_template PRIMARY KEY (task_template_id),
+    CONSTRAINT fk_tb_wf_task_template_state FOREIGN KEY (state_def_id) REFERENCES tb_wf_state_def (state_def_id)
+);
+CREATE INDEX idx_tb_wf_task_template_state ON tb_wf_task_template (state_def_id);
+
+-- ================================================================
+-- 테이블명 : TB_WF_PROCESS_INST (워크플로우 프로세스 인스턴스)
+-- 설명     : 2회차 구현 — 스키마만 선행 생성
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_wf_process_inst
+(
+    process_inst_id     VARCHAR(30)    NOT NULL,               -- 프로세스인스턴스ID
+    process_def_id      VARCHAR(30)    NOT NULL,               -- 프로세스정의ID
+    current_state_def_id VARCHAR(30)   NULL,                   -- 현재상태ID
+    entity_type         VARCHAR(50)    NULL,                   -- 업무유형 (SUBSCRIPTION, QNA 등)
+    entity_id           VARCHAR(50)    NULL,                   -- 업무ID (가입ID 등)
+    status              VARCHAR(20)    DEFAULT 'ACTIVE',       -- 인스턴스상태 (ACTIVE/COMPLETED/CANCELLED)
+    started_by          VARCHAR(50)    NULL,                   -- 시작자ID
+    completed_dt        DATETIME       NULL,                   -- 완료일시
+    created_by          VARCHAR(50)    NOT NULL,
+    created_dt          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by          VARCHAR(50)    NULL,
+    updated_dt          DATETIME       NULL,
+    CONSTRAINT pk_tb_wf_process_inst PRIMARY KEY (process_inst_id),
+    CONSTRAINT fk_tb_wf_process_inst_def FOREIGN KEY (process_def_id) REFERENCES tb_wf_process_def (process_def_id),
+    CONSTRAINT fk_tb_wf_process_inst_state FOREIGN KEY (current_state_def_id) REFERENCES tb_wf_state_def (state_def_id)
+);
+CREATE INDEX idx_tb_wf_process_inst_entity ON tb_wf_process_inst (entity_type, entity_id);
+
+-- ================================================================
+-- 테이블명 : TB_WF_TASK_INST (워크플로우 Task 인스턴스)
+-- 설명     : 2회차 구현 — 스키마만 선행 생성
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_wf_task_inst
+(
+    task_inst_id        VARCHAR(30)    NOT NULL,               -- TaskID
+    process_inst_id     VARCHAR(30)    NOT NULL,               -- 프로세스인스턴스ID
+    task_template_id    VARCHAR(30)    NULL,                   -- 원본 템플릿ID
+    state_def_id        VARCHAR(30)    NOT NULL,               -- 상태정의ID
+    task_nm             VARCHAR(100)   NOT NULL,               -- Task명
+    task_type           VARCHAR(20)    NULL,                   -- Task유형 (REVIEW/APPROVAL/DATA_ENTRY)
+    priority            INTEGER        DEFAULT 5,              -- 우선순위 (1~10)
+    assignee_id         VARCHAR(50)    NULL,                   -- 담당자ID
+    status              VARCHAR(20)    DEFAULT 'PENDING',      -- Task상태 (PENDING/IN_PROGRESS/COMPLETED/CANCELLED)
+    result              VARCHAR(50)    NULL,                   -- 완료결과 (APPROVED/REJECTED/DONE)
+    comment             VARCHAR(1000)  NULL,                   -- 완료코멘트
+    completed_by        VARCHAR(50)    NULL,                   -- 완료처리자
+    due_dt              DATETIME       NULL,                   -- 기한일시
+    completed_dt        DATETIME       NULL,                   -- 완료일시
+    created_by          VARCHAR(50)    NOT NULL,
+    created_dt          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by          VARCHAR(50)    NULL,
+    updated_dt          DATETIME       NULL,
+    CONSTRAINT pk_tb_wf_task_inst PRIMARY KEY (task_inst_id),
+    CONSTRAINT fk_tb_wf_task_inst_proc FOREIGN KEY (process_inst_id) REFERENCES tb_wf_process_inst (process_inst_id),
+    CONSTRAINT fk_tb_wf_task_inst_state FOREIGN KEY (state_def_id) REFERENCES tb_wf_state_def (state_def_id)
+);
+CREATE INDEX idx_tb_wf_task_inst_proc ON tb_wf_task_inst (process_inst_id);
+CREATE INDEX idx_tb_wf_task_inst_assignee ON tb_wf_task_inst (assignee_id, status);
+
+-- ================================================================
+-- 테이블명 : TB_WF_TRANSITION_LOG (워크플로우 전이 로그)
+-- 설명     : 2회차 구현 — 스키마만 선행 생성
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_wf_transition_log
+(
+    transition_log_id   VARCHAR(30)    NOT NULL,               -- 전이로그ID
+    process_inst_id     VARCHAR(30)    NOT NULL,               -- 프로세스인스턴스ID
+    transition_def_id   VARCHAR(30)    NULL,                   -- 전이정의ID
+    from_state_def_id   VARCHAR(30)    NOT NULL,               -- 출발상태ID
+    to_state_def_id     VARCHAR(30)    NOT NULL,               -- 도착상태ID
+    transitioned_dt     DATETIME       NOT NULL,               -- 전이일시
+    remark              VARCHAR(500)   NULL,                   -- 비고
+    created_by          VARCHAR(50)    NOT NULL,
+    created_dt          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by          VARCHAR(50)    NULL,
+    updated_dt          DATETIME       NULL,
+    CONSTRAINT pk_tb_wf_transition_log PRIMARY KEY (transition_log_id),
+    CONSTRAINT fk_tb_wf_transition_log_proc FOREIGN KEY (process_inst_id) REFERENCES tb_wf_process_inst (process_inst_id)
+);
+CREATE INDEX idx_tb_wf_transition_log_proc ON tb_wf_transition_log (process_inst_id);
+
+-- ================================================================
+-- 테이블명 : TB_WF_ENTITY_TYPE_DEF (워크플로우 엔티티 유형 정의)
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_wf_entity_type_def
+(
+    entity_type_cd          VARCHAR(50)    NOT NULL,               -- 엔티티유형코드
+    entity_type_nm          VARCHAR(100)   NOT NULL,               -- 엔티티유형명
+    table_nm                VARCHAR(100)   NOT NULL,               -- 테이블명
+    pk_column               VARCHAR(100)   NOT NULL,               -- PK컬럼명
+    status_column           VARCHAR(100)   NULL,                   -- 상태컬럼명
+    status_cd_group         VARCHAR(100)   NULL,                   -- 상태공통코드그룹
+    biz_key_column          VARCHAR(100)   NULL,                   -- 업무키컬럼명
+    biz_key_label           VARCHAR(100)   NULL,                   -- 업무키라벨
+    route_path              VARCHAR(200)   NULL,                   -- 프론트라우트경로
+    created_by              VARCHAR(50)    NOT NULL,
+    created_dt              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by              VARCHAR(50)    NULL,
+    updated_dt              DATETIME       NULL,
+    CONSTRAINT pk_tb_wf_entity_type_def PRIMARY KEY (entity_type_cd)
+);
+
+-- ================================================================
+-- 테이블명 : TB_BILL_STD_APPRV_REQ (과금기준 결재요청)
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_bill_std_apprv_req
+(
+    apprv_req_id        VARCHAR(25)    NOT NULL,               -- 결재요청ID
+    bill_std_id         VARCHAR(20)    NOT NULL,               -- 과금기준ID
+    subs_id             VARCHAR(50)    NOT NULL,               -- 가입ID
+    apprv_req_content   TEXT           NOT NULL,               -- 결재요청내용 (스냅샷 JSON)
+    apprv_remarks       VARCHAR(500)   NULL,                   -- 결재 특기사항
+    approver_id         VARCHAR(50)    NULL,                   -- 결재자ID
+    created_by          VARCHAR(50)    NOT NULL,
+    created_dt          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by          VARCHAR(50)    NULL,
+    updated_dt          DATETIME       NULL,
+    CONSTRAINT pk_tb_bill_std_apprv_req PRIMARY KEY (apprv_req_id),
+    CONSTRAINT fk_tb_apprv_req_bill_std FOREIGN KEY (bill_std_id) REFERENCES tb_bill_std (bill_std_id),
+    CONSTRAINT fk_tb_apprv_req_subs FOREIGN KEY (subs_id) REFERENCES tb_subscription (subs_id)
+);
+CREATE INDEX idx_tb_bill_std_apprv_req_bill_std ON tb_bill_std_apprv_req (bill_std_id);
+CREATE INDEX idx_tb_bill_std_apprv_req_subs ON tb_bill_std_apprv_req (subs_id);
+
+-- ================================================================
+-- 테이블명 : TB_BILL_STD_REQ (과금기준신청)
+-- 설명     : Temporal 패턴 — 동일 신청의 변경이력을 유효기간으로 관리
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_bill_std_req
+(
+    bill_std_req_seq        BIGINT         NOT NULL AUTO_INCREMENT,
+    bill_std_req_id         VARCHAR(25)    NOT NULL,
+    first_req_dt            DATETIME       NOT NULL,
+    eff_start_dt              DATETIME       NOT NULL,
+    eff_end_dt              DATETIME       NOT NULL DEFAULT '9999-12-31 23:59:59',
+    req_type_cd             VARCHAR(20)    NOT NULL,
+    std_reg_stat_cd         VARCHAR(20)    NOT NULL,
+    bill_std_id             VARCHAR(20)    NOT NULL,
+    subs_id                 VARCHAR(50)    NOT NULL,
+    svc_cd                  VARCHAR(10)    NOT NULL,
+    created_by              VARCHAR(50)    NOT NULL,
+    created_dt              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by              VARCHAR(50)    NULL,
+    updated_dt              DATETIME       NULL,
+    CONSTRAINT pk_tb_bill_std_req PRIMARY KEY (bill_std_req_seq),
+    CONSTRAINT uk_tb_bill_std_req UNIQUE (bill_std_req_id, eff_start_dt)
+);
+CREATE INDEX idx_tb_bill_std_req_subs ON tb_bill_std_req (subs_id);
+CREATE INDEX idx_tb_bill_std_req_current ON tb_bill_std_req (bill_std_req_id, eff_end_dt);
+
+-- ================================================================
+-- 테이블명 : TB_BILL_STD_REQ_FIELD_VALUE (과금기준신청 필드값)
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_bill_std_req_field_value
+(
+    bill_std_req_seq        BIGINT         NOT NULL,
+    field_cd                VARCHAR(50)    NOT NULL,
+    field_value             VARCHAR(500)   NULL,
+    created_by              VARCHAR(50)    NOT NULL,
+    created_dt              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by              VARCHAR(50)    NULL,
+    updated_dt              DATETIME       NULL,
+    CONSTRAINT pk_tb_bill_std_req_fv PRIMARY KEY (bill_std_req_seq, field_cd),
+    CONSTRAINT fk_tb_bill_std_req_fv FOREIGN KEY (bill_std_req_seq) REFERENCES tb_bill_std_req (bill_std_req_seq)
+);
+
+-- ================================================================
+-- 테이블명 : TB_SUBS_MTH_BILL_QTY (가입별 월별과금량)
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_subs_mth_bill_qty
+(
+    subs_id                 VARCHAR(50)    NOT NULL,
+    use_mth                 VARCHAR(6)     NOT NULL,
+    bill_std_id             VARCHAR(20)    NOT NULL,
+    use_qty                 DECIMAL(18,4)  NOT NULL,
+    created_by              VARCHAR(50)    NOT NULL,
+    created_dt              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by              VARCHAR(50)    NULL,
+    updated_dt              DATETIME       NULL,
+    CONSTRAINT pk_tb_subs_mth_bill_qty PRIMARY KEY (subs_id, use_mth)
+);
+
+-- ================================================================
+-- 테이블명 : TB_SPCL_SUBS_MTH_BILL_QTY (특수가입별 월별과금량)
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_spcl_subs_mth_bill_qty
+(
+    spcl_subs_id            VARCHAR(20)    NOT NULL,
+    use_mth                 VARCHAR(6)     NOT NULL,
+    subs_id                 VARCHAR(50)    NOT NULL,
+    bill_std_id             VARCHAR(20)    NOT NULL,
+    pue                     DECIMAL(10,4)  NOT NULL,
+    created_by              VARCHAR(50)    NOT NULL,
+    created_dt              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by              VARCHAR(50)    NULL,
+    updated_dt              DATETIME       NULL,
+    CONSTRAINT pk_tb_spcl_subs_mth_bill_qty PRIMARY KEY (spcl_subs_id, use_mth)
+);
+
+-- ================================================================
+-- 테이블명 : TB_SPCL_SUBS_MTH_BILL_ELEM (특수가입별 월별빌링요소)
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_spcl_subs_mth_bill_elem
+(
+    spcl_subs_id            VARCHAR(20)    NOT NULL,
+    bill_mth                VARCHAR(6)     NOT NULL,
+    subs_id                 VARCHAR(50)    NOT NULL,
+    calc_amt                DECIMAL(18,2)  NOT NULL,
+    bill_amt                DECIMAL(18,2)  NOT NULL,
+    created_by              VARCHAR(50)    NOT NULL,
+    created_dt              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by              VARCHAR(50)    NULL,
+    updated_dt              DATETIME       NULL,
+    CONSTRAINT pk_tb_spcl_subs_mth_bill_elem PRIMARY KEY (spcl_subs_id, bill_mth)
+);
+
+-- ================================================================
+-- 테이블명 : TB_TODO (할일)
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_todo
+(
+    todo_id                 BIGINT         NOT NULL AUTO_INCREMENT,
+    entity_type             VARCHAR(50)    NOT NULL,
+    entity_key1             VARCHAR(50)    NOT NULL,
+    entity_key2             VARCHAR(50)    NULL,
+    todo_title              VARCHAR(200)   NOT NULL,
+    assignee_id             VARCHAR(50)    NOT NULL,
+    todo_status_cd          VARCHAR(20)    NOT NULL DEFAULT 'OPEN',
+    eff_start_dt            DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    eff_end_dt              DATETIME       NOT NULL DEFAULT '9999-12-31 23:59:59',
+    created_by              VARCHAR(50)    NOT NULL,
+    created_dt              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_tb_todo PRIMARY KEY (todo_id),
+    CONSTRAINT uq_tb_todo_entity_eff UNIQUE (entity_type, entity_key1, entity_key2, eff_start_dt, eff_end_dt)
+);
+CREATE INDEX idx_todo_assignee ON tb_todo (assignee_id, todo_status_cd);
+CREATE INDEX idx_todo_entity ON tb_todo (entity_type, entity_key1, entity_key2, eff_start_dt, eff_end_dt);

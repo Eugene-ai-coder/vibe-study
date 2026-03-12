@@ -1,5 +1,5 @@
 <template>
-  <MainLayout>
+  <div>
     <Toast :message="successMsg" type="success" @close="successMsg = ''" />
     <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
 
@@ -126,7 +126,7 @@
       @confirm="confirmAction"
       @cancel="confirmOpen = false"
     />
-  </MainLayout>
+  </div>
 </template>
 
 <script setup>
@@ -135,11 +135,11 @@ import {
   getFieldConfigs, createFieldConfig, updateFieldConfig,
   deleteFieldConfig, expireFieldConfig,
 } from '../api/billStdFieldConfigApi'
-import MainLayout from '../components/common/MainLayout.vue'
 import Toast from '../components/common/Toast.vue'
 import DataGrid from '../components/common/DataGrid.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
+import { fieldClass } from '../composables/useFieldClass'
 import CommonCodeSelect from '../components/common/CommonCodeSelect.vue'
 
 const EMPTY_FORM = {
@@ -182,11 +182,6 @@ const selectedId = computed(() =>
 const dataWithRowId = computed(() =>
   items.value.map(item => ({ ...item, _rowId: `${item.svcCd}__${item.fieldCd}__${item.effStartDt}` }))
 )
-
-const fieldClass = (readOnly) => [
-  'w-full h-8 border rounded px-2 text-sm',
-  readOnly ? 'bg-gray-50 text-gray-400 border-gray-200' : 'bg-white border-gray-300 focus:outline-none focus:border-blue-400',
-]
 
 const toFormData = (dto) => {
   Object.keys(EMPTY_FORM).forEach(key => {

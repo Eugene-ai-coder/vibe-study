@@ -21,11 +21,6 @@ public class BillStdController {
         return billStdService.findAll();
     }
 
-    @GetMapping("/todo")
-    public List<BillStdResponseDto> getTodoList() {
-        return billStdService.findTodoList();
-    }
-
     @GetMapping("/by-subs/{subsId}")
     public ResponseEntity<BillStdResponseDto> getBySubsId(@PathVariable String subsId) {
         return ResponseEntity.ok(billStdService.findBySubsId(subsId));

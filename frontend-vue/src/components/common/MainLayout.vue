@@ -16,6 +16,9 @@
       </div>
     </header>
 
+    <!-- 탭바 -->
+    <TabBar />
+
     <!-- 바디 -->
     <div class="flex flex-1 overflow-hidden">
       <Sidebar />
@@ -23,15 +26,29 @@
         <slot />
       </main>
     </div>
+
+    <!-- 탭 이동 확인 다이얼로그 -->
+    <ConfirmDialog
+      v-if="tabStore.pendingConfirm"
+      :message="tabStore.pendingConfirm.message"
+      confirm-type="primary"
+      confirm-text="이동"
+      @confirm="tabStore.resolveConfirm(true)"
+      @cancel="tabStore.resolveConfirm(false)"
+    />
   </div>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
+import { useTabStore } from '../../stores/tab'
 import Sidebar from '../main/Sidebar.vue'
+import TabBar from './TabBar.vue'
+import ConfirmDialog from './ConfirmDialog.vue'
 
 const auth = useAuthStore()
+const tabStore = useTabStore()
 const router = useRouter()
 
 const handleLogout = async () => {

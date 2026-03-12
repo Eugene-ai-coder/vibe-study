@@ -1,5 +1,5 @@
 <template>
-  <MainLayout>
+  <div>
     <Toast :message="successMsg" type="success" @close="successMsg = ''" />
     <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
 
@@ -76,9 +76,9 @@
             <input type="datetime-local" v-model="formData.subsDt" class="w-full h-8 px-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-400" />
           </div>
           <div>
-            <label class="block text-xs text-gray-500 mb-1">관리자ID</label>
+            <label class="block text-xs text-gray-500 mb-1">관리자</label>
             <div class="flex gap-2">
-              <input v-model="formData.adminId" readonly
+              <input :value="adminDisplay" readonly
                 class="flex-1 h-8 px-2 border border-gray-200 rounded text-sm bg-gray-50 text-gray-400" />
               <button @click="showUserPopup = true"
                 class="h-8 px-3 border border-gray-300 rounded text-sm text-gray-600 hover:bg-gray-50">검색</button>
@@ -86,11 +86,12 @@
           </div>
         </div>
       </div>
+
     </div>
 
     <UserSearchPopup
       :visible="showUserPopup"
-      @select="(user) => { formData.adminId = user.userId }"
+      @select="onAdminSelect"
       @close="showUserPopup = false"
     />
 
@@ -117,15 +118,14 @@
       @confirm="handleSaveConfirm"
       @cancel="saveConfirmOpen = false"
     />
-  </MainLayout>
+  </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { searchSubscriptions, createSubscription, updateSubscription, deleteSubscription } from '../api/subscriptionApi'
-import MainLayout from '../components/common/MainLayout.vue'
 import Toast from '../components/common/Toast.vue'
 import DataGrid from '../components/common/DataGrid.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
@@ -173,6 +173,8 @@ const totalElements = ref(0)
 const pageSize = 10
 
 const isRowSelected = ref(false)
+const adminNickname = ref('')
+const adminDisplay = computed(() => adminNickname.value)
 
 const toFormData = (dto) => ({
   subsId: dto.subsId || '',
@@ -209,8 +211,7 @@ const fetchList = async (pageNum = 0) => {
 
 const handlePageChange = (newPage) => fetchList(newPage)
 
-onMounted(async () => {
-  const subsId = route.query.subsId
+watch(() => route.query.entityId || route.query.subsId, async (subsId) => {
   if (subsId) {
     keyword.value = subsId
     searchType.value = 'SUBS_ID'
@@ -218,7 +219,12 @@ onMounted(async () => {
       await fetchList()
     } catch { errorMsg.value = '조회에 실패했습니다.' }
   }
-})
+}, { immediate: true })
+
+const onAdminSelect = (user) => {
+  formData.adminId = user.userId
+  adminNickname.value = user.nickname || ''
+}
 
 const onSearch = async () => {
   clearMessages()
@@ -227,6 +233,7 @@ const onSearch = async () => {
     await fetchList(0)
     selectedSubs.value = null
     Object.assign(formData, EMPTY_FORM)
+    adminNickname.value = ''
     isRowSelected.value = false
   } catch { errorMsg.value = '조회에 실패했습니다.' }
   finally { isSearching.value = false }
@@ -235,6 +242,7 @@ const onSearch = async () => {
 const onRowSelect = (item) => {
   selectedSubs.value = item
   Object.assign(formData, toFormData(item))
+  adminNickname.value = item.adminNickname || ''
   isRowSelected.value = true
 }
 
@@ -261,12 +269,14 @@ const handleSaveConfirm = async () => {
       const created = await createSubscription(toRequestDto())
       selectedSubs.value = created
       Object.assign(formData, toFormData(created))
+      adminNickname.value = created.adminNickname || ''
       isRowSelected.value = true
       successMsg.value = '등록이 완료되었습니다.'
     } else {
       const updated = await updateSubscription(selectedSubs.value.subsId, toRequestDto())
       selectedSubs.value = updated
       Object.assign(formData, toFormData(updated))
+      adminNickname.value = updated.adminNickname || ''
       successMsg.value = '변경이 완료되었습니다.'
     }
     await fetchList()
@@ -291,6 +301,7 @@ const onDelete = async () => {
     await deleteSubscription(selectedSubs.value.subsId)
     selectedSubs.value = null
     Object.assign(formData, EMPTY_FORM)
+    adminNickname.value = ''
     isRowSelected.value = false
     successMsg.value = '삭제가 완료되었습니다.'
     await fetchList()
@@ -300,4 +311,5 @@ const onDelete = async () => {
       : '삭제에 실패했습니다.'
   }
 }
+
 </script>

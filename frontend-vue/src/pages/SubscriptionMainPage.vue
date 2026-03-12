@@ -1,5 +1,5 @@
 <template>
-  <MainLayout>
+  <div>
     <Toast :message="successMsg" type="success" @close="successMsg = ''" />
     <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
 
@@ -118,7 +118,7 @@
         저장
       </button>
     </FloatingActionBar>
-  </MainLayout>
+  </div>
 </template>
 
 <script setup>
@@ -131,7 +131,6 @@ import {
   saveSubscriptionMainBulk
 } from '../api/subscriptionMainApi'
 import { commonCodeApi } from '../api/commonCodeApi'
-import MainLayout from '../components/common/MainLayout.vue'
 import Toast from '../components/common/Toast.vue'
 import DataGrid from '../components/common/DataGrid.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'

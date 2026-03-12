@@ -38,17 +38,17 @@ public class SpecialSubscriptionServiceImpl implements SpecialSubscriptionServic
     }
 
     @Override
-    public SpecialSubscriptionResponseDto findById(String subsBillStdId, String effStaDt) {
-        return toDto(findOrThrow(subsBillStdId, effStaDt));
+    public SpecialSubscriptionResponseDto findById(String subsBillStdId, String effStartDt) {
+        return toDto(findOrThrow(subsBillStdId, effStartDt));
     }
 
     @Override
     @Transactional
     public SpecialSubscriptionResponseDto create(SpecialSubscriptionRequestDto dto) {
-        SpecialSubscriptionId id = new SpecialSubscriptionId(dto.getSubsBillStdId(), dto.getEffStaDt());
+        SpecialSubscriptionId id = new SpecialSubscriptionId(dto.getSubsBillStdId(), dto.getEffStartDt());
         if (repository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "이미 존재하는 특수가입입니다: " + dto.getSubsBillStdId() + "/" + dto.getEffStaDt());
+                    "이미 존재하는 특수가입입니다: " + dto.getSubsBillStdId() + "/" + dto.getEffStartDt());
         }
 
         SpecialSubscription entity = new SpecialSubscription();
@@ -61,7 +61,7 @@ public class SpecialSubscriptionServiceImpl implements SpecialSubscriptionServic
         entity.setCntrcCapKmh(dto.getCntrcCapKmh());
         entity.setCntrcAmt(dto.getCntrcAmt());
         entity.setDscRt(dto.getDscRt());
-        entity.setRmk(dto.getRmk());
+        entity.setRemark(dto.getRemark());
         entity.setCreatedBy(SecurityUtils.getCurrentUserId());
         entity.setCreatedDt(LocalDateTime.now());
 
@@ -70,10 +70,10 @@ public class SpecialSubscriptionServiceImpl implements SpecialSubscriptionServic
 
     @Override
     @Transactional
-    public SpecialSubscriptionResponseDto update(String subsBillStdId, String effStaDt, SpecialSubscriptionRequestDto dto) {
-        SpecialSubscription entity = findOrThrow(subsBillStdId, effStaDt);
+    public SpecialSubscriptionResponseDto update(String subsBillStdId, String effStartDt, SpecialSubscriptionRequestDto dto) {
+        SpecialSubscription entity = findOrThrow(subsBillStdId, effStartDt);
 
-        // PK 필드(subsBillStdId, effStaDt) 변경 불가
+        // PK 필드(subsBillStdId, effStartDt) 변경 불가
         entity.setSubsId(dto.getSubsId());
         entity.setSvcCd(dto.getSvcCd());
         entity.setEffEndDt(dto.getEffEndDt());
@@ -82,7 +82,7 @@ public class SpecialSubscriptionServiceImpl implements SpecialSubscriptionServic
         entity.setCntrcCapKmh(dto.getCntrcCapKmh());
         entity.setCntrcAmt(dto.getCntrcAmt());
         entity.setDscRt(dto.getDscRt());
-        entity.setRmk(dto.getRmk());
+        entity.setRemark(dto.getRemark());
         entity.setUpdatedBy(SecurityUtils.getCurrentUserId());
         entity.setUpdatedDt(LocalDateTime.now());
 
@@ -91,24 +91,24 @@ public class SpecialSubscriptionServiceImpl implements SpecialSubscriptionServic
 
     @Override
     @Transactional
-    public void delete(String subsBillStdId, String effStaDt) {
-        findOrThrow(subsBillStdId, effStaDt);
-        repository.deleteById(new SpecialSubscriptionId(subsBillStdId, effStaDt));
+    public void delete(String subsBillStdId, String effStartDt) {
+        findOrThrow(subsBillStdId, effStartDt);
+        repository.deleteById(new SpecialSubscriptionId(subsBillStdId, effStartDt));
     }
 
     // ── 내부 헬퍼 ────────────────────────────────────────────────
 
-    private SpecialSubscription findOrThrow(String subsBillStdId, String effStaDt) {
-        SpecialSubscriptionId id = new SpecialSubscriptionId(subsBillStdId, effStaDt);
+    private SpecialSubscription findOrThrow(String subsBillStdId, String effStartDt) {
+        SpecialSubscriptionId id = new SpecialSubscriptionId(subsBillStdId, effStartDt);
         return repository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "특수가입을 찾을 수 없습니다: " + subsBillStdId + "/" + effStaDt));
+                        "특수가입을 찾을 수 없습니다: " + subsBillStdId + "/" + effStartDt));
     }
 
     private SpecialSubscriptionResponseDto toDto(SpecialSubscription e) {
         SpecialSubscriptionResponseDto dto = new SpecialSubscriptionResponseDto();
         dto.setSubsBillStdId(e.getId().getSubsBillStdId());
-        dto.setEffStaDt(e.getId().getEffStaDt());
+        dto.setEffStartDt(e.getId().getEffStartDt());
         dto.setSubsId(e.getSubsId());
         dto.setSvcCd(e.getSvcCd());
         dto.setEffEndDt(e.getEffEndDt());
@@ -117,7 +117,7 @@ public class SpecialSubscriptionServiceImpl implements SpecialSubscriptionServic
         dto.setCntrcCapKmh(e.getCntrcCapKmh());
         dto.setCntrcAmt(e.getCntrcAmt());
         dto.setDscRt(e.getDscRt());
-        dto.setRmk(e.getRmk());
+        dto.setRemark(e.getRemark());
         dto.setCreatedBy(e.getCreatedBy());
         dto.setCreatedDt(e.getCreatedDt());
         dto.setUpdatedBy(e.getUpdatedBy());

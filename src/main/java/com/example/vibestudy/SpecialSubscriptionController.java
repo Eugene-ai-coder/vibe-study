@@ -23,11 +23,11 @@ public class SpecialSubscriptionController {
         return service.findPage(subsBillStdId, subsId, pageable);
     }
 
-    @GetMapping("/{subsBillStdId}/{effStaDt}")
+    @GetMapping("/{subsBillStdId}/{effStartDt}")
     public ResponseEntity<SpecialSubscriptionResponseDto> getById(
             @PathVariable String subsBillStdId,
-            @PathVariable String effStaDt) {
-        return ResponseEntity.ok(service.findById(subsBillStdId, effStaDt));
+            @PathVariable String effStartDt) {
+        return ResponseEntity.ok(service.findById(subsBillStdId, effStartDt));
     }
 
     @PostMapping
@@ -36,19 +36,19 @@ public class SpecialSubscriptionController {
         return ResponseEntity.status(201).body(service.create(dto));
     }
 
-    @PutMapping("/{subsBillStdId}/{effStaDt}")
+    @PutMapping("/{subsBillStdId}/{effStartDt}")
     public ResponseEntity<SpecialSubscriptionResponseDto> update(
             @PathVariable String subsBillStdId,
-            @PathVariable String effStaDt,
+            @PathVariable String effStartDt,
             @RequestBody SpecialSubscriptionRequestDto dto) {
-        return ResponseEntity.ok(service.update(subsBillStdId, effStaDt, dto));
+        return ResponseEntity.ok(service.update(subsBillStdId, effStartDt, dto));
     }
 
-    @DeleteMapping("/{subsBillStdId}/{effStaDt}")
+    @DeleteMapping("/{subsBillStdId}/{effStartDt}")
     public ResponseEntity<Void> delete(
             @PathVariable String subsBillStdId,
-            @PathVariable String effStaDt) {
-        service.delete(subsBillStdId, effStaDt);
+            @PathVariable String effStartDt) {
+        service.delete(subsBillStdId, effStartDt);
         return ResponseEntity.noContent().build();
     }
 }

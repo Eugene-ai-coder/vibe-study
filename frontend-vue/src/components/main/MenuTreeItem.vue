@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   node: { type: Object, required: true },
   depth: { type: Number, default: 1 },
   openGroups: { type: Set, required: true },
@@ -47,7 +47,7 @@ defineProps({
 defineEmits(['toggle'])
 
 const linkClass = (to) => {
-  const isActive = window.location.pathname === to
+  const isActive = props.currentPath === to
   return `block py-2 pr-4 text-sm transition-colors ${
     isActive
       ? 'text-[#2563EB] bg-blue-50 font-medium'

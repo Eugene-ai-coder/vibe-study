@@ -33,7 +33,7 @@
     <!-- TODO 과금기준 -->
     <div class="bg-white rounded-lg shadow-sm p-5">
       <h2 class="text-sm font-semibold text-gray-700 mb-3">
-        과금기준 TODO <span class="text-[#2563EB] font-bold">{{ todoItems.length }}</span>건
+        과금기준신청 TODO <span class="text-[#2563EB] font-bold">{{ todoItems.length }}</span>건
       </h2>
       <p v-if="todoItems.length === 0" class="text-sm text-gray-400">처리할 TODO가 없습니다.</p>
       <table v-else class="w-full text-sm">
@@ -44,9 +44,9 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in todoItems" :key="item.billStdId"
+          <tr v-for="item in todoItems" :key="item.billStdReqId"
             class="border-b border-gray-50 hover:bg-blue-50 cursor-pointer"
-            @click="router.push(`/bill-std?subsId=${item.subsId}`)">
+            @click="router.push(`/bill-std-req/${item.billStdReqId}`)">
             <td class="py-1.5 text-[#2563EB]">{{ item.subsId }}</td>
             <td class="py-1.5">{{ getLabel('std_reg_stat_cd', item.stdRegStatCd) }}</td>
           </tr>
@@ -87,7 +87,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { searchSubscriptions } from '../../api/subscriptionApi'
-import { getTodoList } from '../../api/billStdApi'
+import { getTodoList } from '../../api/billStdReqApi'
 import { useCommonCodeLabel } from '../../composables/useCommonCodeLabel'
 import Toast from '../common/Toast.vue'
 

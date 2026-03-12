@@ -1,5 +1,5 @@
 <template>
-  <MainLayout>
+  <div>
     <Toast :message="successMsg" type="success" @close="successMsg = ''" />
     <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
 
@@ -129,13 +129,12 @@
       @confirm="handleSaveConfirm"
       @cancel="saveConfirmOpen = false"
     />
-  </MainLayout>
+  </div>
 </template>
 
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { getLogs, createLog, updateLog, deleteLog } from '../api/studyLogApi'
-import MainLayout from '../components/common/MainLayout.vue'
 import Toast from '../components/common/Toast.vue'
 import Loading from '../components/common/Loading.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'

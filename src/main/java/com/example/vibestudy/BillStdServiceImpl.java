@@ -54,14 +54,6 @@ public class BillStdServiceImpl implements BillStdService {
         return toDto(list.get(0));
     }
 
-    @Override
-    public List<BillStdResponseDto> findTodoList() {
-        return repository.findByStdRegStatCdNotIn(List.of("APPROVED", "CANCEL"))
-                .stream()
-                .map(this::toDto)
-                .toList();
-    }
-
     // ── 등록 ─────────────────────────────────────────────────────
 
     @Override
@@ -77,6 +69,9 @@ public class BillStdServiceImpl implements BillStdService {
         if (activeList.size() == 1) {
             BillStd existing = activeList.get(0);
             existing.setLastEffYn("N");
+            existing.setEffEndDt(LocalDateTime.now());
+            existing.setUpdatedBy(SecurityUtils.getCurrentUserId());
+            existing.setUpdatedDt(LocalDateTime.now());
             repository.save(existing);
         }
 
@@ -89,7 +84,6 @@ public class BillStdServiceImpl implements BillStdService {
         entity.setLastEffYn("Y");
         entity.setEffStartDt(dto.getEffStartDt());
         entity.setEffEndDt(dto.getEffEndDt() != null ? dto.getEffEndDt() : DEFAULT_EFF_END_DT);
-        entity.setStdRegStatCd(dto.getStdRegStatCd());
         entity.setBillStdStatCd(dto.getBillStdStatCd());
         entity.setCreatedBy(SecurityUtils.getCurrentUserId());
         entity.setCreatedDt(LocalDateTime.now());
@@ -114,7 +108,6 @@ public class BillStdServiceImpl implements BillStdService {
         entity.setLastEffYn(dto.getLastEffYn());
         entity.setEffStartDt(dto.getEffStartDt());
         entity.setEffEndDt(dto.getEffEndDt());
-        entity.setStdRegStatCd(dto.getStdRegStatCd());
         entity.setBillStdStatCd(dto.getBillStdStatCd());
         entity.setUpdatedBy(SecurityUtils.getCurrentUserId());
         entity.setUpdatedDt(LocalDateTime.now());
@@ -176,7 +169,6 @@ public class BillStdServiceImpl implements BillStdService {
         dto.setLastEffYn(e.getLastEffYn());
         dto.setEffStartDt(e.getEffStartDt());
         dto.setEffEndDt(e.getEffEndDt());
-        dto.setStdRegStatCd(e.getStdRegStatCd());
         dto.setBillStdStatCd(e.getBillStdStatCd());
         dto.setCreatedBy(e.getCreatedBy());
         dto.setCreatedDt(e.getCreatedDt());

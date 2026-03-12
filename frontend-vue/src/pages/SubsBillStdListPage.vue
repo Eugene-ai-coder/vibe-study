@@ -1,5 +1,5 @@
 <template>
-  <MainLayout>
+  <div>
     <Toast :message="successMsg" type="success" @close="successMsg = ''" />
     <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
 
@@ -37,20 +37,19 @@
         title="가입별 과금기준 목록"
       />
     </div>
-  </MainLayout>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getSubsBillStdList } from '../api/subsBillStdApi'
-import MainLayout from '../components/common/MainLayout.vue'
 import Toast from '../components/common/Toast.vue'
 import DataGrid from '../components/common/DataGrid.vue'
 import { useCommonCodeLabel } from '../composables/useCommonCodeLabel'
 
 const router = useRouter()
-const { getLabel } = useCommonCodeLabel(['subs_status_cd', 'std_reg_stat_cd'])
+const { getLabel } = useCommonCodeLabel(['subs_status_cd'])
 
 const columns = computed(() => [
   { key: 'subsId', header: '가입ID', size: 120 },
@@ -59,8 +58,6 @@ const columns = computed(() => [
     cell: { props: ['value'], setup(props) { return () => getLabel('subs_status_cd', props.value) } } },
   { key: 'billStdId', header: '과금기준ID', size: 160 },
   { key: 'billStdNm', header: '과금기준명', size: 150 },
-  { key: 'stdRegStatCd', header: '등록진행상태', size: 120,
-    cell: { props: ['value'], setup(props) { return () => getLabel('std_reg_stat_cd', props.value) } } },
   { key: 'effStartDt', header: '유효시작일', size: 160 },
   { key: 'effEndDt', header: '유효종료일', size: 160 },
 ])
