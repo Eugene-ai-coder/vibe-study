@@ -1,8 +1,5 @@
 <template>
   <div>
-    <Toast :message="successMsg" type="success" @close="successMsg = ''" />
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
-
     <div class="space-y-4">
       <h1 class="text-xl font-bold text-gray-800">과금기준신청 목록</h1>
 
@@ -44,18 +41,20 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getSubsBillStdReqList } from '../api/subsBillStdReqApi'
-import Toast from '../components/common/Toast.vue'
+import { useToast } from '../composables/useToast'
 import DataGrid from '../components/common/DataGrid.vue'
 import { useCommonCodeLabel } from '../composables/useCommonCodeLabel'
 
 const router = useRouter()
-const { getLabel } = useCommonCodeLabel(['svc_cd', 'bill_std_req_type_cd', 'std_reg_stat_cd'])
+const { getLabel } = useCommonCodeLabel(['svc_cd', 'basic_prod_cd', 'bill_std_req_type_cd', 'std_reg_stat_cd'])
 
 const columns = computed(() => [
   { key: 'subsId', header: '가입ID', size: 120 },
   { key: 'subsNm', header: '가입명', size: 150 },
   { key: 'svcCd', header: '서비스코드', size: 100,
     cell: { props: ['value'], setup(props) { return () => getLabel('svc_cd', props.value) } } },
+  { key: 'basicProdCd', header: '기본상품코드', size: 100,
+    cell: { props: ['value'], setup(props) { return () => getLabel('basic_prod_cd', props.value) } } },
   { key: 'reqTypeCd', header: '신청구분', size: 100,
     cell: { props: ['value'], setup(props) { return () => getLabel('bill_std_req_type_cd', props.value) } } },
   { key: 'stdRegStatCd', header: '진행상태', size: 120,
@@ -68,8 +67,7 @@ const columns = computed(() => [
 
 const items = ref([])
 const keyword = ref('')
-const errorMsg = ref('')
-const successMsg = ref('')
+const { showError } = useToast()
 const isSearching = ref(false)
 
 const page = ref(0)
@@ -86,7 +84,7 @@ const fetchList = async (pageNum = 0) => {
     totalPages.value = data.totalPages
     totalElements.value = data.totalElements
   } catch {
-    errorMsg.value = '조회에 실패했습니다.'
+    showError('조회에 실패했습니다.')
   } finally {
     isSearching.value = false
   }

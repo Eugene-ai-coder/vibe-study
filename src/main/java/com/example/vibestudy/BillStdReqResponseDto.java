@@ -15,6 +15,7 @@ public class BillStdReqResponseDto {
     private String billStdId;
     private String subsId;
     private String svcCd;
+    private String basicProdCd;
     private Map<String, String> fieldValues;
 
     /* ── System Fields ───────────────────────────────────────── */
@@ -54,6 +55,9 @@ public class BillStdReqResponseDto {
 
     public String getSvcCd() { return svcCd; }
     public void setSvcCd(String svcCd) { this.svcCd = svcCd; }
+
+    public String getBasicProdCd() { return basicProdCd; }
+    public void setBasicProdCd(String basicProdCd) { this.basicProdCd = basicProdCd; }
 
     public Map<String, String> getFieldValues() { return fieldValues; }
     public void setFieldValues(Map<String, String> fieldValues) { this.fieldValues = fieldValues; }

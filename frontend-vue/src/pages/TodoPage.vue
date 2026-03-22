@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
     <div class="space-y-4">
       <h1 class="text-xl font-bold text-gray-800">내 할일</h1>
 
@@ -15,6 +14,7 @@
             <option value="">업무유형 전체</option>
             <option value="SUBSCRIPTION">가입</option>
             <option value="BILL_STD">과금기준</option>
+            <option value="BILL_STD_REQ">과금기준신청</option>
           </select>
           <button @click="handleSearch" class="h-8 px-4 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">조회</button>
         </div>
@@ -32,7 +32,7 @@
 import { ref, onMounted, h } from 'vue'
 import { useRouter } from 'vue-router'
 import { todoApi } from '../api/todoApi'
-import Toast from '../components/common/Toast.vue'
+import { useToast } from '../composables/useToast'
 import DataGrid from '../components/common/DataGrid.vue'
 
 const router = useRouter()
@@ -45,6 +45,7 @@ const columns = [
         const val = props.row.entityType
         if (val === 'SUBSCRIPTION') return '가입'
         if (val === 'BILL_STD') return '과금기준'
+        if (val === 'BILL_STD_REQ') return '과금기준신청'
         return val
       }
     }}
@@ -71,7 +72,7 @@ const page = ref(0)
 const totalPages = ref(0)
 const totalElements = ref(0)
 const pageSize = ref(10)
-const errorMsg = ref('')
+const { showError } = useToast()
 
 const fetchList = async (p = 0) => {
   try {
@@ -83,7 +84,7 @@ const fetchList = async (p = 0) => {
     page.value = result.number
     totalPages.value = result.totalPages
     totalElements.value = result.totalElements
-  } catch { errorMsg.value = '목록 조회에 실패했습니다.' }
+  } catch { showError('목록 조회에 실패했습니다.') }
 }
 
 onMounted(() => fetchList())
@@ -96,6 +97,8 @@ const handleRowClick = (row) => {
     router.push('/subscriptions')
   } else if (row.entityType === 'BILL_STD') {
     router.push('/subs-bill-std')
+  } else if (row.entityType === 'BILL_STD_REQ') {
+    router.push({ path: '/bill-std-req', query: { billStdReqId: row.entityKey1 } })
   }
 }
 </script>

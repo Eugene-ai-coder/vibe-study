@@ -1,8 +1,5 @@
 <template>
   <div>
-    <Toast :message="successMsg" type="success" @close="successMsg = ''" />
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
-
     <div class="space-y-4">
       <h1 class="text-xl font-bold text-gray-800">{{ isNew ? 'Q&A 등록' : 'Q&A 상세' }}</h1>
 
@@ -117,7 +114,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { qnaApi } from '../api/qnaApi'
-import Toast from '../components/common/Toast.vue'
+import { useToast } from '../composables/useToast'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 
@@ -135,8 +132,7 @@ const saveConfirmOpen = ref(false)
 const saveConfirmMessage = ref('')
 const commentDeleteConfirmOpen = ref(false)
 const commentDeleteTargetId = ref(null)
-const errorMsg = ref('')
-const successMsg = ref('')
+const { showSuccess, showError } = useToast()
 
 const isOwner = computed(() => isNew.value || form.createdBy === auth.user?.userId)
 
@@ -145,7 +141,7 @@ onMounted(async () => {
     try {
       const data = await qnaApi.getOne(route.params.id)
       Object.assign(form, data)
-    } catch { errorMsg.value = '게시글을 불러오지 못했습니다.' }
+    } catch { showError('게시글을 불러오지 못했습니다.') }
     try { comments.value = await qnaApi.getComments(route.params.id) } catch {}
   }
 })
@@ -159,9 +155,8 @@ const handleActionClick = () => {
 }
 
 const handleSave = () => {
-  errorMsg.value = ''
-  if (!form.title.trim()) { errorMsg.value = '제목을 입력해 주세요.'; return }
-  if (!form.content.trim()) { errorMsg.value = '내용을 입력해 주세요.'; return }
+  if (!form.title.trim()) { showError('제목을 입력해 주세요.'); return }
+  if (!form.content.trim()) { showError('내용을 입력해 주세요.'); return }
   saveConfirmMessage.value = isNew.value ? '게시글을 등록하시겠습니까?' : '게시글을 수정하시겠습니까?'
   saveConfirmOpen.value = true
 }
@@ -171,16 +166,16 @@ const handleSaveConfirm = async () => {
   try {
     if (isNew.value) {
       await qnaApi.create({ ...form, createdBy: auth.user?.userId ?? 'SYSTEM' })
-      successMsg.value = '게시글이 등록되었습니다.'
+      showSuccess('게시글이 등록되었습니다.')
       router.push('/qna')
     } else {
       const updated = await qnaApi.update(route.params.id, { ...form, createdBy: auth.user?.userId ?? 'SYSTEM' })
       Object.assign(form, updated)
       isEditing.value = false
-      successMsg.value = '게시글이 수정되었습니다.'
+      showSuccess('게시글이 수정되었습니다.')
     }
   } catch (err) {
-    errorMsg.value = err?.response?.data?.message || '저장에 실패했습니다.'
+    showError(err?.response?.data?.message || '저장에 실패했습니다.')
   }
 }
 
@@ -188,10 +183,10 @@ const handleDelete = async () => {
   confirmOpen.value = false
   try {
     await qnaApi.delete(route.params.id)
-    successMsg.value = '게시글이 삭제되었습니다.'
+    showSuccess('게시글이 삭제되었습니다.')
     setTimeout(() => router.push('/qna'), 500)
   } catch (err) {
-    errorMsg.value = err?.response?.status === 403 ? '삭제 권한이 없습니다.' : '삭제에 실패했습니다.'
+    showError(err?.response?.status === 403 ? '삭제 권한이 없습니다.' : '삭제에 실패했습니다.')
   }
 }
 
@@ -201,8 +196,8 @@ const handleCommentSubmit = async () => {
     await qnaApi.createComment(route.params.id, { content: commentContent.value.trim(), createdBy: auth.user?.userId ?? 'SYSTEM' })
     comments.value = await qnaApi.getComments(route.params.id)
     commentContent.value = ''
-    successMsg.value = '댓글이 등록되었습니다.'
-  } catch { errorMsg.value = '댓글 등록에 실패했습니다.' }
+    showSuccess('댓글이 등록되었습니다.')
+  } catch { showError('댓글 등록에 실패했습니다.') }
 }
 
 const handleCommentDelete = (commentId) => {
@@ -215,7 +210,7 @@ const handleCommentDeleteConfirm = async () => {
   try {
     await qnaApi.deleteComment(route.params.id, commentDeleteTargetId.value)
     comments.value = await qnaApi.getComments(route.params.id)
-    successMsg.value = '댓글이 삭제되었습니다.'
-  } catch { errorMsg.value = '댓글 삭제에 실패했습니다.' }
+    showSuccess('댓글이 삭제되었습니다.')
+  } catch { showError('댓글 삭제에 실패했습니다.') }
 }
 </script>

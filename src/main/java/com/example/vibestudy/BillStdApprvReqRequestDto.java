@@ -4,8 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 
 public class BillStdApprvReqRequestDto {
 
-    @NotBlank(message = "과금기준ID는 필수입니다.")
-    private String billStdId;
+    @NotBlank(message = "과금기준신청ID는 필수입니다.")
+    private String billStdReqId;
 
     @NotBlank(message = "가입ID는 필수입니다.")
     private String subsId;
@@ -17,8 +17,8 @@ public class BillStdApprvReqRequestDto {
 
     // ── Getters / Setters ────────────────────────────────────────
 
-    public String getBillStdId() { return billStdId; }
-    public void setBillStdId(String billStdId) { this.billStdId = billStdId; }
+    public String getBillStdReqId() { return billStdReqId; }
+    public void setBillStdReqId(String billStdReqId) { this.billStdReqId = billStdReqId; }
 
     public String getSubsId() { return subsId; }
     public void setSubsId(String subsId) { this.subsId = subsId; }

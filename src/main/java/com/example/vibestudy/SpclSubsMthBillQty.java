@@ -14,7 +14,7 @@ public class SpclSubsMthBillQty {
     @Column(name = "subs_id", length = 50, nullable = false)
     private String subsId;
 
-    @Column(name = "bill_std_id", length = 20, nullable = false)
+    @Column(name = "bill_std_id", length = 25, nullable = false)
     private String billStdId;
 
     @Column(name = "pue", precision = 10, scale = 4, nullable = false)

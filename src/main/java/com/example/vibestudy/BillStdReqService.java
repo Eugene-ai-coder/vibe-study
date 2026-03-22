@@ -9,6 +9,8 @@ public interface BillStdReqService {
 
     BillStdReqResponseDto findCurrentByReqId(String billStdReqId);
 
+    BillStdReqResponseDto findBySubsId(String subsId);
+
     BillStdReqResponseDto create(BillStdReqRequestDto dto);
 
     BillStdReqResponseDto save(String billStdReqId, BillStdReqRequestDto dto);

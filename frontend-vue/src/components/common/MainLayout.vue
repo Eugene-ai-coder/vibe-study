@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col min-h-screen">
+  <div class="flex flex-col h-screen">
     <!-- 헤더 -->
     <header class="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-10">
       <span class="font-bold text-gray-800">종량가입관리 시스템</span>
@@ -27,6 +27,9 @@
       </main>
     </div>
 
+    <!-- 글로벌 Toast -->
+    <Toast :message="toast.message.value" :type="toast.type.value" @close="toast.close()" />
+
     <!-- 탭 이동 확인 다이얼로그 -->
     <ConfirmDialog
       v-if="tabStore.pendingConfirm"
@@ -46,6 +49,10 @@ import { useTabStore } from '../../stores/tab'
 import Sidebar from '../main/Sidebar.vue'
 import TabBar from './TabBar.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
+import Toast from './Toast.vue'
+import { useToast } from '../../composables/useToast'
+
+const toast = useToast()
 
 const auth = useAuthStore()
 const tabStore = useTabStore()

@@ -16,9 +16,6 @@ import java.util.List;
 @Service
 public class TodoServiceImpl implements TodoService {
 
-    private static final LocalDateTime OPEN_EFF_END_DT =
-            LocalDateTime.of(9999, 12, 31, 23, 59, 59);
-
     private final TodoRepository repository;
 
     public TodoServiceImpl(TodoRepository repository) {
@@ -52,7 +49,7 @@ public class TodoServiceImpl implements TodoService {
 
         List<Todo> existing = repository
                 .findByEntityTypeAndEntityKey1AndEntityKey2AndEffEndDt(
-                        entityType, key1, key2, OPEN_EFF_END_DT);
+                        entityType, key1, key2, IdGenerator.MAX_DT);
         if (!existing.isEmpty()) return;
 
         Todo todo = new Todo();
@@ -63,7 +60,7 @@ public class TodoServiceImpl implements TodoService {
         todo.setAssigneeId(assigneeId);
         todo.setTodoStatusCd("OPEN");
         todo.setEffStartDt(LocalDateTime.now());
-        todo.setEffEndDt(OPEN_EFF_END_DT);
+        todo.setEffEndDt(IdGenerator.MAX_DT);
         todo.setCreatedBy(SecurityUtils.getCurrentUserId());
         todo.setCreatedDt(LocalDateTime.now());
         repository.save(todo);
@@ -79,7 +76,9 @@ public class TodoServiceImpl implements TodoService {
         for (Todo todo : openTodos) {
             todo.setTodoStatusCd("DONE");
             todo.setEffEndDt(now);
-            repository.save(todo);
+        }
+        if (!openTodos.isEmpty()) {
+            repository.saveAll(openTodos);
         }
     }
 

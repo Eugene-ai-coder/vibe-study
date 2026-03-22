@@ -1,8 +1,5 @@
 <template>
   <div>
-    <Toast :message="successMsg" type="success" @close="successMsg = ''" />
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
-
     <div class="space-y-4">
       <h1 class="text-xl font-bold text-gray-800">내 할일</h1>
 
@@ -136,7 +133,7 @@ import { useAuthStore } from '../stores/auth'
 import { wfTaskApi } from '../api/wfTaskApi'
 import { wfEngineApi } from '../api/wfEngineApi'
 import { wfEntityTypeApi } from '../api/wfEntityTypeApi'
-import Toast from '../components/common/Toast.vue'
+import { useToast } from '../composables/useToast'
 import DataGrid from '../components/common/DataGrid.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 
@@ -151,10 +148,9 @@ const assigneeFilter = ref('')
 const items = ref([])
 const selectedTask = ref(null)
 const actionComment = ref('')
-const errorMsg = ref('')
-const successMsg = ref('')
+const { showSuccess, showError } = useToast()
 
-const clearMessages = () => { errorMsg.value = ''; successMsg.value = '' }
+const clearMessages = () => {}
 
 const priorityCell = {
   props: ['value'],
@@ -206,7 +202,7 @@ const onSearch = async () => {
     if (statusFilter.value) params.status = statusFilter.value
     items.value = await wfTaskApi.getMyTasks(params)
     selectedTask.value = null
-  } catch { errorMsg.value = '조회에 실패했습니다.' }
+  } catch { showError('조회에 실패했습니다.') }
 }
 
 const onRowSelect = (item) => {
@@ -218,10 +214,10 @@ const onClaim = async () => {
   clearMessages()
   try {
     await wfTaskApi.claimTask(selectedTask.value.taskInstId, { createdBy: currentUserId.value })
-    successMsg.value = '담당이 지정되었습니다.'
+    showSuccess('담당이 지정되었습니다.')
     await onSearch()
   } catch (err) {
-    errorMsg.value = err?.response?.data?.message || '담당 지정에 실패했습니다.'
+    showError(err?.response?.data?.message || '담당 지정에 실패했습니다.')
   }
 }
 
@@ -233,11 +229,11 @@ const onComplete = async (result) => {
       comment: actionComment.value || null,
       createdBy: currentUserId.value,
     })
-    successMsg.value = '처리가 완료되었습니다.'
+    showSuccess('처리가 완료되었습니다.')
     actionComment.value = ''
     await onSearch()
   } catch (err) {
-    errorMsg.value = err?.response?.data?.message || '처리에 실패했습니다.'
+    showError(err?.response?.data?.message || '처리에 실패했습니다.')
   }
 }
 
@@ -248,12 +244,12 @@ const goToEntity = async () => {
     const { entityType, entityId } = pi
     const et = entityTypes.value.find(e => e.entityTypeCd === entityType)
     if (!et?.routePath) {
-      errorMsg.value = `엔티티유형(${entityType})의 화면 경로가 정의되지 않았습니다.`
+      showError(`엔티티유형(${entityType})의 화면 경로가 정의되지 않았습니다.`)
       return
     }
     router.push({ path: et.routePath, query: { entityId } })
   } catch {
-    errorMsg.value = '업무 화면 이동에 실패했습니다.'
+    showError('업무 화면 이동에 실패했습니다.')
   }
 }
 

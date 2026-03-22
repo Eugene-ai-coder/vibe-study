@@ -124,7 +124,7 @@
               ]"
             >
               <template v-if="col.cell">
-                <component :is="col.cell" :row="row" :value="row[col.key]" />
+                <component :is="normalizeCell(col.cell)" :row="row" :value="row[col.key]" />
               </template>
               <template v-else>{{ row[col.key] }}</template>
             </td>
@@ -195,6 +195,16 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['rowClick', 'selectionChange'])
+
+/* cell 컴포넌트에 inheritAttrs: false 자동 적용 (미선언 prop 경고 방지) */
+const cellCache = new WeakMap()
+const normalizeCell = (cell) => {
+  if (!cell || typeof cell !== 'object' || cell.inheritAttrs === false) return cell
+  if (cellCache.has(cell)) return cellCache.get(cell)
+  const normalized = { ...cell, inheritAttrs: false }
+  cellCache.set(cell, normalized)
+  return normalized
+}
 
 /* 컬럼 키 목록 */
 const defaultOrder = computed(() => props.columns.map(c => c.accessorKey ?? c.id ?? c.key))

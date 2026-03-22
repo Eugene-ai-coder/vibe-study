@@ -1,6 +1,5 @@
 package com.example.vibestudy;
 
-import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,21 +30,4 @@ public class BillStdController {
         return ResponseEntity.ok(billStdService.findById(id));
     }
 
-    @PostMapping
-    public ResponseEntity<BillStdResponseDto> create(@Valid @RequestBody BillStdRequestDto dto) {
-        return ResponseEntity.status(201).body(billStdService.create(dto));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<BillStdResponseDto> update(
-            @PathVariable String id,
-            @Valid @RequestBody BillStdRequestDto dto) {
-        return ResponseEntity.ok(billStdService.update(id, dto));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        billStdService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
 }

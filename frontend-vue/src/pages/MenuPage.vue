@@ -1,8 +1,5 @@
 <template>
   <div>
-    <Toast :message="successMsg" type="success" @close="successMsg = ''" />
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
-
     <div class="space-y-4">
       <h1 class="text-xl font-bold text-gray-800">메뉴관리</h1>
 
@@ -15,7 +12,7 @@
               <button @click="handleAddRoot"
                 class="h-7 px-3 bg-blue-600 text-white text-xs rounded hover:bg-blue-700">최상위 메뉴 추가</button>
             </div>
-            <div class="max-h-[40rem] overflow-y-auto border border-gray-200 rounded">
+            <div ref="treeContainer" class="max-h-[40rem] overflow-y-auto border border-gray-200 rounded sortable-group">
               <div v-if="treeData.length === 0" class="px-3 py-4 text-center text-xs text-gray-400">
                 메뉴 데이터가 없습니다.
               </div>
@@ -29,8 +26,6 @@
                 :is-last="idx === treeData.length - 1"
                 @select="handleNodeSelect"
                 @add-child="handleAddChild"
-                @move-up="handleMoveUp"
-                @move-down="handleMoveDown"
               />
             </div>
           </div>
@@ -137,15 +132,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { menuApi } from '../api/menuApi'
 import { commonCodeApi } from '../api/commonCodeApi'
 import { useMenuStore } from '../stores/menu'
-import Toast from '../components/common/Toast.vue'
+import { useToast } from '../composables/useToast'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import TreeNode from '../components/menu/TreeNode.vue'
+import Sortable from 'sortablejs'
 
 const router = useRouter()
 const menuStore = useMenuStore()
@@ -167,11 +163,79 @@ const selectedMenuId = ref(null)
 const confirmOpen = ref(false)
 const saveConfirmOpen = ref(false)
 const saveConfirmMessage = ref('')
-const successMsg = ref('')
-const errorMsg = ref('')
+const { showSuccess, showError } = useToast()
 const availableRoles = ref([])
+const treeContainer = ref(null)
 
-const clearMessages = () => { successMsg.value = ''; errorMsg.value = '' }
+// sortablejs 초기화
+function initSortable() {
+  nextTick(() => {
+    if (!treeContainer.value) return
+    const containers = [treeContainer.value, ...treeContainer.value.querySelectorAll('.sortable-group')]
+    containers.forEach(el => {
+      if (el._sortable) el._sortable.destroy()
+      el._sortable = Sortable.create(el, {
+        group: 'menu-tree',
+        animation: 150,
+        fallbackOnBody: true,
+        swapThreshold: 0.5,
+        emptyInsertThreshold: 10,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        dragClass: 'sortable-drag',
+        handle: '[data-menu-id]',
+        draggable: '[data-menu-id]',
+        onMove: handleSortableMove,
+        onEnd: handleSortableEnd,
+      })
+    })
+  })
+}
+
+watch(treeData, () => initSortable(), { flush: 'post' })
+
+// onMove — 클라이언트 측 드롭 차단 (순환참조 + URL 있는 메뉴 하위)
+const handleSortableMove = (evt) => {
+  const draggedMenuId = evt.dragged.dataset.menuId
+  if (!draggedMenuId) return true
+  if (evt.dragged.contains(evt.to)) {
+    return false
+  }
+  if (evt.to.dataset.hasUrl === 'true') {
+    return false
+  }
+  return true
+}
+
+// handleSortableEnd — 드롭 완료 시 서버 호출
+const handleSortableEnd = async (evt) => {
+  const menuId = evt.item.dataset.menuId
+  if (!menuId) return
+
+  // [Critic 반영] sortablejs DOM 변경을 원복하여 Vue 반응성 충돌 방지
+  const { from, item, oldIndex } = evt
+  from.insertBefore(item, from.children[oldIndex] || null)
+
+  const parentEl = evt.to
+  const newParentId = parentEl.dataset.parentId || null
+
+  const newSortOrder = evt.newIndex + 1
+
+    try {
+    await menuApi.moveMenu(menuId, { newParentId, newSortOrder })
+    await fetchTree()
+    await menuStore.fetchMyMenu()
+    showSuccess('메뉴가 이동되었습니다.')
+  } catch (err) {
+    await fetchTree()
+    const status = err?.response?.status
+    if (status === 400) {
+      showError(err?.response?.data?.message || '이동할 수 없는 위치입니다.')
+    } else {
+      showError('메뉴 이동에 실패했습니다.')
+    }
+  }
+}
 
 // 트리에서 모든 menuUrl 수집
 function collectMenuUrls(nodes) {
@@ -209,7 +273,7 @@ const fetchTree = async () => {
   try {
     treeData.value = await menuApi.getTree()
   } catch {
-    errorMsg.value = '메뉴 트리 조회에 실패했습니다.'
+    showError('메뉴 트리 조회에 실패했습니다.')
   }
 }
 
@@ -227,8 +291,7 @@ onMounted(async () => {
 })
 
 const handleNodeSelect = async (node) => {
-  clearMessages()
-  selectedMenuId.value = node.menuId
+    selectedMenuId.value = node.menuId
   try {
     const detail = await menuApi.get(node.menuId)
     Object.assign(form, {
@@ -243,20 +306,18 @@ const handleNodeSelect = async (node) => {
     })
     mode.value = 'edit'
   } catch {
-    errorMsg.value = '메뉴 정보 조회에 실패했습니다.'
+    showError('메뉴 정보 조회에 실패했습니다.')
   }
 }
 
 const handleAddRoot = () => {
-  clearMessages()
-  selectedMenuId.value = null
+    selectedMenuId.value = null
   Object.assign(form, { ...EMPTY_FORM, parentMenuId: null, menuLevel: 1 })
   mode.value = 'new'
 }
 
 const handleAddChild = (parentNode) => {
-  clearMessages()
-  selectedMenuId.value = null
+    selectedMenuId.value = null
   Object.assign(form, {
     ...EMPTY_FORM,
     parentMenuId: parentNode.menuId,
@@ -266,9 +327,8 @@ const handleAddChild = (parentNode) => {
 }
 
 const handleSave = () => {
-  clearMessages()
-  if (!form.menuNm.trim()) {
-    errorMsg.value = '메뉴명은 필수입니다.'
+    if (!form.menuNm.trim()) {
+    showError('메뉴명은 필수입니다.')
     return
   }
   saveConfirmMessage.value = mode.value === 'new' ? '메뉴를 등록하시겠습니까?' : '메뉴를 수정하시겠습니까?'
@@ -288,10 +348,10 @@ const handleSaveConfirm = async () => {
     }
     if (mode.value === 'new') {
       await menuApi.create(payload)
-      successMsg.value = '메뉴가 등록되었습니다.'
+      showSuccess('메뉴가 등록되었습니다.')
     } else {
       await menuApi.update(form.menuId, payload)
-      successMsg.value = '메뉴가 수정되었습니다.'
+      showSuccess('메뉴가 수정되었습니다.')
     }
     mode.value = 'view'
     selectedMenuId.value = null
@@ -301,19 +361,18 @@ const handleSaveConfirm = async () => {
   } catch (err) {
     const status = err?.response?.status
     if (status === 400) {
-      errorMsg.value = err?.response?.data?.message || '입력값을 확인해 주세요.'
+      showError(err?.response?.data?.message || '입력값을 확인해 주세요.')
     } else {
-      errorMsg.value = '저장에 실패했습니다.'
+      showError('저장에 실패했습니다.')
     }
   }
 }
 
 const handleDeleteConfirm = async () => {
   confirmOpen.value = false
-  clearMessages()
-  try {
+    try {
     await menuApi.delete(form.menuId)
-    successMsg.value = '메뉴가 삭제되었습니다.'
+    showSuccess('메뉴가 삭제되었습니다.')
     mode.value = 'view'
     selectedMenuId.value = null
     Object.assign(form, EMPTY_FORM)
@@ -322,40 +381,16 @@ const handleDeleteConfirm = async () => {
   } catch (err) {
     const status = err?.response?.status
     if (status === 409) {
-      errorMsg.value = '하위 메뉴가 존재하여 삭제할 수 없습니다.'
+      showError('하위 메뉴가 존재하여 삭제할 수 없습니다.')
     } else {
-      errorMsg.value = '삭제에 실패했습니다.'
+      showError('삭제에 실패했습니다.')
     }
   }
 }
 
-const handleMoveUp = async (node) => {
-  clearMessages()
-  try {
-    await menuApi.moveUp(node.menuId)
-    await fetchTree()
-    await menuStore.fetchMyMenu()
-    successMsg.value = '메뉴 순서가 변경되었습니다.'
-  } catch {
-    errorMsg.value = '이동에 실패했습니다.'
-  }
-}
-
-const handleMoveDown = async (node) => {
-  clearMessages()
-  try {
-    await menuApi.moveDown(node.menuId)
-    await fetchTree()
-    await menuStore.fetchMyMenu()
-    successMsg.value = '메뉴 순서가 변경되었습니다.'
-  } catch {
-    errorMsg.value = '이동에 실패했습니다.'
-  }
-}
 
 const handleUnlinkedPageClick = (page) => {
-  clearMessages()
-  selectedMenuId.value = null
+    selectedMenuId.value = null
   Object.assign(form, { ...EMPTY_FORM, menuNm: page.label, menuUrl: page.path, parentMenuId: null, menuLevel: 1 })
   mode.value = 'new'
 }
@@ -366,3 +401,14 @@ const handleCancel = () => {
   Object.assign(form, EMPTY_FORM)
 }
 </script>
+
+<style scoped>
+:deep(.sortable-ghost) {
+  opacity: 0.4;
+  background: #DBEAFE;
+  border-radius: 4px;
+}
+:deep(.sortable-chosen) {
+  background: #EFF6FF;
+}
+</style>

@@ -1,13 +1,10 @@
 <template>
   <div>
-    <Toast :message="successMsg" type="success" @close="successMsg = ''" />
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
-
     <div class="space-y-4">
       <h1 class="text-xl font-bold text-gray-800">공통코드 관리</h1>
 
       <!-- 조회영역 -->
-      <div class="bg-white rounded-lg shadow-sm p-4 flex items-end gap-4">
+      <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-end gap-4">
         <div>
           <label class="block text-xs text-gray-500 mb-1">공통코드</label>
           <input v-model="searchCode" @keydown.enter="handleSearch"
@@ -27,7 +24,7 @@
         <!-- 좌측: 공통코드 목록 -->
         <div class="w-1/3 space-y-2">
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <table class="w-full text-sm border-collapse">
+            <table class="w-full text-sm border-collapse table-fixed">
               <thead class="bg-gray-50 border-t border-gray-300 border-b border-gray-300">
                 <tr>
                   <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500">공통코드</th>
@@ -36,7 +33,7 @@
               </thead>
             </table>
             <div class="max-h-[40rem] overflow-y-auto">
-              <table class="w-full text-sm border-collapse">
+              <table class="w-full text-sm border-collapse table-fixed">
                 <tbody>
                   <tr v-if="codes.length === 0">
                     <td colspan="2" class="px-3 py-4 text-center text-xs text-gray-400">데이터가 없습니다.</td>
@@ -60,7 +57,7 @@
         <!-- 우측: 상세코드 목록 -->
         <div class="w-2/3 space-y-2">
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <table class="w-full text-sm border-collapse">
+            <table class="w-full text-sm border-collapse table-fixed">
               <thead class="bg-gray-50 border-t border-gray-300 border-b border-gray-300">
                 <tr>
                   <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500">상세코드</th>
@@ -70,7 +67,7 @@
               </thead>
             </table>
             <div class="max-h-[40rem] overflow-y-auto">
-              <table class="w-full text-sm border-collapse">
+              <table class="w-full text-sm border-collapse table-fixed">
                 <tbody>
                   <tr v-if="details.length === 0">
                     <td colspan="3" class="px-3 py-4 text-center text-xs text-gray-400">데이터가 없습니다.</td>
@@ -195,7 +192,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { commonCodeApi } from '../api/commonCodeApi'
-import Toast from '../components/common/Toast.vue'
+import { useToast } from '../composables/useToast'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 
@@ -218,10 +215,7 @@ const dtlConfirmOpen = ref(false)
 const saveConfirmOpen = ref(false)
 const saveConfirmMessage = ref('')
 const isLoading = ref(false)
-const successMsg = ref('')
-const errorMsg = ref('')
-
-const clearMessages = () => { successMsg.value = ''; errorMsg.value = '' }
+const { showSuccess, showError } = useToast()
 
 const getSearchParams = () => {
   const params = {}
@@ -235,7 +229,6 @@ onMounted(async () => {
 })
 
 const handleSearch = async () => {
-  clearMessages()
   isLoading.value = true
   try {
     codes.value = await commonCodeApi.getAll(getSearchParams())
@@ -246,7 +239,7 @@ const handleSearch = async () => {
     Object.assign(dtlForm, EMPTY_DTL_FORM)
     codeMode.value = 'view'
     dtlMode.value = 'view'
-  } catch { errorMsg.value = '조회에 실패했습니다.' }
+  } catch { showError('조회에 실패했습니다.') }
   finally { isLoading.value = false }
 }
 
@@ -258,7 +251,7 @@ const handleCodeRowClick = async (code) => {
   codeMode.value = 'edit'
   dtlMode.value = 'view'
   try { details.value = await commonCodeApi.getDetails(code.commonCode) }
-  catch { errorMsg.value = '상세코드 조회에 실패했습니다.' }
+  catch { showError('상세코드 조회에 실패했습니다.') }
 }
 
 const handleDtlRowClick = (dtl) => {
@@ -276,19 +269,17 @@ const handleCodeNewClick = () => {
 
 const handleDtlDeleteConfirm = async () => {
   dtlConfirmOpen.value = false
-  clearMessages()
   try {
     await commonCodeApi.deleteDetail(selectedCode.value.commonCode, selectedDtl.value.commonDtlCode)
     selectedDtl.value = null
     Object.assign(dtlForm, EMPTY_DTL_FORM)
     dtlMode.value = 'view'
     details.value = await commonCodeApi.getDetails(selectedCode.value.commonCode)
-    successMsg.value = '상세코드가 삭제되었습니다.'
-  } catch { errorMsg.value = '상세코드 삭제에 실패했습니다.' }
+    showSuccess('상세코드가 삭제되었습니다.')
+  } catch { showError('상세코드 삭제에 실패했습니다.') }
 }
 
 const handleSave = () => {
-  clearMessages()
   const parts = []
   if (codeMode.value === 'new') parts.push('공통코드 등록')
   else if (codeMode.value === 'edit') parts.push('공통코드 수정')
@@ -300,22 +291,21 @@ const handleSave = () => {
 
 const handleSaveConfirm = async () => {
   saveConfirmOpen.value = false
-  clearMessages()
   const createdBy = auth.user?.userId ?? 'SYSTEM'
   try {
     if (codeMode.value === 'new') {
       await commonCodeApi.create({ ...codeForm, createdBy })
-      successMsg.value = '공통코드가 등록되었습니다.'
+      showSuccess('공통코드가 등록되었습니다.')
       codeMode.value = 'view'
       codes.value = await commonCodeApi.getAll(getSearchParams())
       Object.assign(codeForm, EMPTY_CODE_FORM)
     } else if (codeMode.value === 'edit') {
       await commonCodeApi.update(codeForm.commonCode, { ...codeForm, createdBy })
-      successMsg.value = '공통코드가 수정되었습니다.'
+      showSuccess('공통코드가 수정되었습니다.')
       codes.value = await commonCodeApi.getAll(getSearchParams())
     }
   } catch (err) {
-    errorMsg.value = err?.response?.data?.message || '저장에 실패했습니다.'
+    showError(err?.response?.data?.message || '저장에 실패했습니다.')
     return
   }
 
@@ -323,16 +313,16 @@ const handleSaveConfirm = async () => {
     try {
       if (dtlMode.value === 'new') {
         await commonCodeApi.createDetail(selectedCode.value.commonCode, { ...dtlForm, createdBy })
-        successMsg.value = '상세코드가 등록되었습니다.'
+        showSuccess('상세코드가 등록되었습니다.')
         dtlMode.value = 'view'
         Object.assign(dtlForm, EMPTY_DTL_FORM)
       } else if (dtlMode.value === 'edit') {
         await commonCodeApi.updateDetail(selectedCode.value.commonCode, dtlForm.commonDtlCode, { ...dtlForm, createdBy })
-        successMsg.value = '상세코드가 수정되었습니다.'
+        showSuccess('상세코드가 수정되었습니다.')
       }
       details.value = await commonCodeApi.getDetails(selectedCode.value.commonCode)
     } catch (err) {
-      errorMsg.value = err?.response?.data?.message || '상세코드 저장에 실패했습니다.'
+      showError(err?.response?.data?.message || '상세코드 저장에 실패했습니다.')
     }
   }
 }

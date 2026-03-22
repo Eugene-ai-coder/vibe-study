@@ -10,7 +10,7 @@ public class SubscriptionRequestDto {
 
     private String subsNm;
     private String svcCd;
-    private String feeProdCd;
+    private String basicProdCd;
     private String subsStatusCd;
     private LocalDateTime subsDt;
     private LocalDateTime chgDt;
@@ -30,8 +30,8 @@ public class SubscriptionRequestDto {
     public String getSvcCd() { return svcCd; }
     public void setSvcCd(String svcCd) { this.svcCd = svcCd; }
 
-    public String getFeeProdCd() { return feeProdCd; }
-    public void setFeeProdCd(String feeProdCd) { this.feeProdCd = feeProdCd; }
+    public String getBasicProdCd() { return basicProdCd; }
+    public void setBasicProdCd(String basicProdCd) { this.basicProdCd = basicProdCd; }
 
     public String getSubsStatusCd() { return subsStatusCd; }
     public void setSubsStatusCd(String subsStatusCd) { this.subsStatusCd = subsStatusCd; }

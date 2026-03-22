@@ -1,8 +1,5 @@
 <template>
   <div>
-    <Toast :message="successMsg" type="success" @close="successMsg = ''" />
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
-
     <div class="space-y-4 pb-24">
       <h1 class="text-xl font-bold text-gray-800">특수가입별 월별과금량</h1>
 
@@ -106,7 +103,7 @@ import {
   getSpclSubsMthBillQtyList, createSpclSubsMthBillQty,
   updateSpclSubsMthBillQty, deleteSpclSubsMthBillQty,
 } from '../api/spclSubsMthBillQtyApi'
-import Toast from '../components/common/Toast.vue'
+import { useToast } from '../composables/useToast'
 import DataGrid from '../components/common/DataGrid.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
@@ -133,8 +130,7 @@ const isLoading = ref(false)
 const confirmOpen = ref(false)
 const saveConfirmOpen = ref(false)
 const saveConfirmMessage = ref('')
-const errorMsg = ref('')
-const successMsg = ref('')
+const { showSuccess, showError } = useToast()
 
 const page = ref(0)
 const totalPages = ref(0)
@@ -163,7 +159,7 @@ const toRequestDto = () => ({
   pue: formData.pue ? parseFloat(formData.pue) : null,
 })
 
-const clearMessages = () => { errorMsg.value = ''; successMsg.value = '' }
+const clearMessages = () => {}
 
 const getSearchParams = () => {
   const params = {}
@@ -191,7 +187,7 @@ const handleSearch = async () => {
     selected.value = null
     Object.assign(formData, EMPTY_FORM)
     isNew.value = false
-  } catch { errorMsg.value = '조회에 실패했습니다.' }
+  } catch { showError('조회에 실패했습니다.') }
   finally { isLoading.value = false }
 }
 
@@ -211,13 +207,13 @@ const handleNewClick = () => {
 const handleSaveClick = () => {
   clearMessages()
   if (!formData.spclSubsId || !formData.useMth || !formData.subsId || !formData.billStdId || !formData.pue) {
-    errorMsg.value = '필수 항목을 입력해 주세요.'
+    showError('필수 항목을 입력해 주세요.')
     return
   }
   if (isNew.value) {
     saveConfirmMessage.value = '특수가입별 월별과금량을 등록하시겠습니까?'
   } else {
-    if (!selected.value) { errorMsg.value = '목록에서 항목을 선택해 주세요.'; return }
+    if (!selected.value) { showError('목록에서 항목을 선택해 주세요.'); return }
     saveConfirmMessage.value = '특수가입별 월별과금량을 변경하시겠습니까?'
   }
   saveConfirmOpen.value = true
@@ -231,24 +227,24 @@ const handleSaveConfirmAction = async () => {
       toFormData(created)
       selected.value = created
       isNew.value = false
-      successMsg.value = '저장이 완료되었습니다.'
+      showSuccess('저장이 완료되었습니다.')
     } else {
       const updated = await updateSpclSubsMthBillQty(selected.value.spclSubsId, selected.value.useMth, toRequestDto())
       toFormData(updated)
       selected.value = updated
-      successMsg.value = '변경이 완료되었습니다.'
+      showSuccess('변경이 완료되었습니다.')
     }
     await fetchList(page.value)
   } catch (err) {
     const status = err?.response?.status
-    if (status === 409) errorMsg.value = '이미 존재하는 특수가입별 월별과금량입니다.'
-    else if (status === 400) errorMsg.value = err?.response?.data?.message || '입력값을 확인해 주세요.'
-    else errorMsg.value = '저장에 실패했습니다.'
+    if (status === 409) showError('이미 존재하는 특수가입별 월별과금량입니다.')
+    else if (status === 400) showError(err?.response?.data?.message || '입력값을 확인해 주세요.')
+    else showError('저장에 실패했습니다.')
   }
 }
 
 const handleDeleteClick = () => {
-  if (!selected.value) { errorMsg.value = '목록에서 항목을 선택해 주세요.'; return }
+  if (!selected.value) { showError('목록에서 항목을 선택해 주세요.'); return }
   clearMessages()
   confirmOpen.value = true
 }
@@ -260,8 +256,8 @@ const executeDelete = async () => {
     selected.value = null
     Object.assign(formData, EMPTY_FORM)
     isNew.value = false
-    successMsg.value = '삭제가 완료되었습니다.'
+    showSuccess('삭제가 완료되었습니다.')
     await fetchList(page.value)
-  } catch { errorMsg.value = '삭제에 실패했습니다.' }
+  } catch { showError('삭제에 실패했습니다.') }
 }
 </script>

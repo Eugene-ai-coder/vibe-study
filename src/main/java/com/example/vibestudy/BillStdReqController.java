@@ -5,7 +5,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bill-std-req")
@@ -20,6 +19,11 @@ public class BillStdReqController {
     @GetMapping("/todo")
     public List<BillStdReqResponseDto> getTodoList() {
         return service.findTodoList();
+    }
+
+    @GetMapping("/search-by-subs")
+    public ResponseEntity<BillStdReqResponseDto> searchBySubsId(@RequestParam String subsId) {
+        return ResponseEntity.ok(service.findBySubsId(subsId));
     }
 
     @GetMapping("/{billStdReqId}")
@@ -42,10 +46,8 @@ public class BillStdReqController {
     @PutMapping("/{billStdReqId}/status")
     public ResponseEntity<BillStdReqResponseDto> changeStatus(
             @PathVariable String billStdReqId,
-            @RequestBody Map<String, String> body) {
-        String status = body.get("status");
-        String createdBy = body.get("createdBy");
-        return ResponseEntity.ok(service.changeStatus(billStdReqId, status, createdBy));
+            @Valid @RequestBody StatusChangeRequestDto dto) {
+        return ResponseEntity.ok(service.changeStatus(billStdReqId, dto.getStatus(), dto.getCreatedBy()));
     }
 
     @DeleteMapping("/{billStdReqId}")

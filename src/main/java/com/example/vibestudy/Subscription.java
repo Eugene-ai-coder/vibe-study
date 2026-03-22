@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.LocalDateTime;
 
 @Entity
@@ -20,8 +21,8 @@ public class Subscription {
     @Column(name = "svc_cd", length = 10)
     private String svcCd;
 
-    @Column(name = "fee_prod_cd", length = 10)
-    private String feeProdCd;
+    @Column(name = "basic_prod_cd", length = 20)
+    private String basicProdCd;
 
     @Column(name = "subs_status_cd", length = 20)
     private String subsStatusCd;
@@ -34,6 +35,11 @@ public class Subscription {
 
     @Column(name = "admin_id", length = 50)
     private String adminId;
+
+    /* ── Optimistic Lock ───────────────────────────────── */
+    @Version
+    @Column(name = "version")
+    private Long version;
 
     /* ── System Fields ─────────────────────────────────── */
     @Column(name = "created_by", length = 50, nullable = false)
@@ -59,8 +65,8 @@ public class Subscription {
     public String getSvcCd() { return svcCd; }
     public void setSvcCd(String svcCd) { this.svcCd = svcCd; }
 
-    public String getFeeProdCd() { return feeProdCd; }
-    public void setFeeProdCd(String feeProdCd) { this.feeProdCd = feeProdCd; }
+    public String getBasicProdCd() { return basicProdCd; }
+    public void setBasicProdCd(String basicProdCd) { this.basicProdCd = basicProdCd; }
 
     public String getSubsStatusCd() { return subsStatusCd; }
     public void setSubsStatusCd(String subsStatusCd) { this.subsStatusCd = subsStatusCd; }
@@ -73,6 +79,9 @@ public class Subscription {
 
     public String getAdminId() { return adminId; }
     public void setAdminId(String adminId) { this.adminId = adminId; }
+
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
 
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }

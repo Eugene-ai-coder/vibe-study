@@ -13,6 +13,7 @@ public class BillStdRequestDto {
     /* ── 등록·유효 제어 ──────────────────────────────────────── */
     private LocalDateTime billStdRegDt;
     private String        svcCd;
+    private String        basicProdCd;
     private String        lastEffYn;
     private LocalDateTime effStartDt;
     private LocalDateTime effEndDt;
@@ -37,6 +38,9 @@ public class BillStdRequestDto {
 
     public String getSvcCd() { return svcCd; }
     public void setSvcCd(String svcCd) { this.svcCd = svcCd; }
+
+    public String getBasicProdCd() { return basicProdCd; }
+    public void setBasicProdCd(String basicProdCd) { this.basicProdCd = basicProdCd; }
 
     public String getLastEffYn() { return lastEffYn; }
     public void setLastEffYn(String lastEffYn) { this.lastEffYn = lastEffYn; }

@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public class Menu {
 
     @Id
-    @Column(name = "menu_id", length = 20, nullable = false)
+    @Column(name = "menu_id", length = 30, nullable = false)
     private String menuId;
 
     @Column(name = "menu_nm", length = 100, nullable = false)
@@ -17,7 +17,7 @@ public class Menu {
     @Column(name = "menu_url", length = 200)
     private String menuUrl;
 
-    @Column(name = "parent_menu_id", length = 20)
+    @Column(name = "parent_menu_id", length = 30)
     private String parentMenuId;
 
     @Column(name = "sort_order")

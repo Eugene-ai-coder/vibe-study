@@ -6,19 +6,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class BillStdServiceImpl implements BillStdService {
-
-    private static final LocalDateTime DEFAULT_EFF_END_DT =
-            LocalDateTime.of(9999, 12, 31, 23, 59, 59);
-
-    private static final DateTimeFormatter ID_FORMATTER =
-            DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
     private final BillStdRepository repository;
     private final BillStdFieldValueRepository fieldValueRepository;
@@ -45,7 +38,7 @@ public class BillStdServiceImpl implements BillStdService {
 
     @Override
     public BillStdResponseDto findBySubsId(String subsId) {
-        List<BillStd> list = repository.findBySubsIdAndLastEffYn(subsId, "Y");
+        List<BillStd> list = repository.findBySubsIdAndLastEffYnOrderByEffStartDtDesc(subsId, "Y");
         if (list.isEmpty()) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
@@ -60,7 +53,7 @@ public class BillStdServiceImpl implements BillStdService {
     @Transactional
     public BillStdResponseDto create(BillStdRequestDto dto) {
         // 기존 유효 레코드 이력 처리
-        List<BillStd> activeList = repository.findBySubsIdAndLastEffYn(dto.getSubsId(), "Y");
+        List<BillStd> activeList = repository.findBySubsIdAndLastEffYnOrderByEffStartDtDesc(dto.getSubsId(), "Y");
         if (activeList.size() > 1) {
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
@@ -81,9 +74,10 @@ public class BillStdServiceImpl implements BillStdService {
         entity.setSubsId(dto.getSubsId());
         entity.setBillStdRegDt(dto.getBillStdRegDt());
         entity.setSvcCd(dto.getSvcCd());
+        entity.setBasicProdCd(dto.getBasicProdCd());
         entity.setLastEffYn("Y");
         entity.setEffStartDt(dto.getEffStartDt());
-        entity.setEffEndDt(dto.getEffEndDt() != null ? dto.getEffEndDt() : DEFAULT_EFF_END_DT);
+        entity.setEffEndDt(dto.getEffEndDt() != null ? dto.getEffEndDt() : IdGenerator.MAX_DT);
         entity.setBillStdStatCd(dto.getBillStdStatCd());
         entity.setCreatedBy(SecurityUtils.getCurrentUserId());
         entity.setCreatedDt(LocalDateTime.now());
@@ -105,6 +99,7 @@ public class BillStdServiceImpl implements BillStdService {
         // subsId / createdBy / createdDt 변경 불가
         entity.setBillStdRegDt(dto.getBillStdRegDt());
         entity.setSvcCd(dto.getSvcCd());
+        entity.setBasicProdCd(dto.getBasicProdCd());
         entity.setLastEffYn(dto.getLastEffYn());
         entity.setEffStartDt(dto.getEffStartDt());
         entity.setEffEndDt(dto.getEffEndDt());
@@ -145,19 +140,22 @@ public class BillStdServiceImpl implements BillStdService {
     }
 
     private String generateId() {
-        return "BS" + LocalDateTime.now().format(ID_FORMATTER);
+        return IdGenerator.generate("BS");
     }
 
     private void saveFieldValues(String billStdId, Map<String, String> fieldValues, String userId) {
         if (fieldValues == null || fieldValues.isEmpty()) return;
+        LocalDateTime now = LocalDateTime.now();
+        List<BillStdFieldValue> entities = new java.util.ArrayList<>();
         for (Map.Entry<String, String> entry : fieldValues.entrySet()) {
             BillStdFieldValue fv = new BillStdFieldValue();
             fv.setId(new BillStdFieldValueId(billStdId, entry.getKey()));
             fv.setFieldValue(entry.getValue());
             fv.setCreatedBy(userId);
-            fv.setCreatedDt(LocalDateTime.now());
-            fieldValueRepository.save(fv);
+            fv.setCreatedDt(now);
+            entities.add(fv);
         }
+        fieldValueRepository.saveAll(entities);
     }
 
     private BillStdResponseDto toDto(BillStd e) {
@@ -166,6 +164,7 @@ public class BillStdServiceImpl implements BillStdService {
         dto.setSubsId(e.getSubsId());
         dto.setBillStdRegDt(e.getBillStdRegDt());
         dto.setSvcCd(e.getSvcCd());
+        dto.setBasicProdCd(e.getBasicProdCd());
         dto.setLastEffYn(e.getLastEffYn());
         dto.setEffStartDt(e.getEffStartDt());
         dto.setEffEndDt(e.getEffEndDt());

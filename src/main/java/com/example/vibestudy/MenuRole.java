@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public class MenuRole {
 
     @Id
-    @Column(name = "menu_id", length = 20, nullable = false)
+    @Column(name = "menu_id", length = 30, nullable = false)
     private String menuId;
 
     @Id

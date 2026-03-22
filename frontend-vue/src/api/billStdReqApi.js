@@ -3,6 +3,9 @@ import apiClient from './apiClient'
 export const getBillStdReq = (billStdReqId) =>
   apiClient.get(`/bill-std-req/${billStdReqId}`).then(res => res.data)
 
+export const searchBySubsId = (subsId) =>
+  apiClient.get('/bill-std-req/search-by-subs', { params: { subsId } }).then(res => res.data)
+
 export const createBillStdReq = (data) =>
   apiClient.post('/bill-std-req', data).then(res => res.data)
 

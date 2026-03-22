@@ -11,7 +11,7 @@ public class SubsMthBillQty {
     @EmbeddedId
     private SubsMthBillQtyId id;
 
-    @Column(name = "bill_std_id", length = 20, nullable = false)
+    @Column(name = "bill_std_id", length = 25, nullable = false)
     private String billStdId;
 
     @Column(name = "use_qty", precision = 18, scale = 4, nullable = false)

@@ -1,8 +1,5 @@
 <template>
   <div>
-    <Toast :message="successMsg" type="success" @close="successMsg = ''" />
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
-
     <div class="space-y-4">
       <h1 class="text-xl font-bold text-gray-800">가입별 월별과금량</h1>
 
@@ -54,7 +51,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { getSubsMthBillQtyList } from '../api/subsMthBillQtyApi'
-import Toast from '../components/common/Toast.vue'
+import { useToast } from '../composables/useToast'
 import DataGrid from '../components/common/DataGrid.vue'
 
 const columns = computed(() => [
@@ -68,8 +65,7 @@ const items = ref([])
 const keyword = ref('')
 const useMthFrom = ref('')
 const useMthTo = ref('')
-const errorMsg = ref('')
-const successMsg = ref('')
+const { showError } = useToast()
 const isSearching = ref(false)
 
 const page = ref(0)
@@ -94,7 +90,7 @@ const fetchList = async (pageNum = 0) => {
     totalPages.value = data.totalPages
     totalElements.value = data.totalElements
   } catch {
-    errorMsg.value = '조회에 실패했습니다.'
+    showError('조회에 실패했습니다.')
   } finally {
     isSearching.value = false
   }

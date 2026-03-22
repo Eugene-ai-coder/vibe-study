@@ -7,6 +7,7 @@ public class SubsBillStdReqResponseDto {
     private String subsId;
     private String subsNm;
     private String svcCd;
+    private String basicProdCd;
     private String reqTypeCd;
     private String stdRegStatCd;
     private String billStdReqId;
@@ -14,12 +15,13 @@ public class SubsBillStdReqResponseDto {
     private LocalDateTime effStartDt;
     private LocalDateTime effEndDt;
 
-    public SubsBillStdReqResponseDto(String subsId, String subsNm, String svcCd,
+    public SubsBillStdReqResponseDto(String subsId, String subsNm, String svcCd, String basicProdCd,
             String reqTypeCd, String stdRegStatCd, String billStdReqId,
             LocalDateTime firstReqDt, LocalDateTime effStartDt, LocalDateTime effEndDt) {
         this.subsId = subsId;
         this.subsNm = subsNm;
         this.svcCd = svcCd;
+        this.basicProdCd = basicProdCd;
         this.reqTypeCd = reqTypeCd;
         this.stdRegStatCd = stdRegStatCd;
         this.billStdReqId = billStdReqId;
@@ -38,6 +40,9 @@ public class SubsBillStdReqResponseDto {
 
     public String getSvcCd() { return svcCd; }
     public void setSvcCd(String svcCd) { this.svcCd = svcCd; }
+
+    public String getBasicProdCd() { return basicProdCd; }
+    public void setBasicProdCd(String basicProdCd) { this.basicProdCd = basicProdCd; }
 
     public String getReqTypeCd() { return reqTypeCd; }
     public void setReqTypeCd(String reqTypeCd) { this.reqTypeCd = reqTypeCd; }

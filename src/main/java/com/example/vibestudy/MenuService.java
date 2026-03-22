@@ -18,5 +18,7 @@ public interface MenuService {
 
     void moveMenuDown(String menuId);
 
+    void moveMenu(String menuId, MenuMoveRequestDto dto);
+
     void deleteMenu(String menuId);
 }

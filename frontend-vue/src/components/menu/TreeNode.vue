@@ -1,8 +1,8 @@
 <template>
-  <div>
+  <div :data-menu-id="node.menuId">
     <div
       :class="[
-        'flex items-center group cursor-pointer transition-colors',
+        'flex items-center group cursor-grab active:cursor-grabbing transition-colors',
         node.menuId === selectedId
           ? 'bg-blue-50 text-blue-900'
           : 'hover:bg-gray-50 text-gray-800'
@@ -77,20 +77,8 @@
         <span v-if="node.useYn === 'N'" class="text-xs text-red-400 ml-1">[미사용]</span>
       </span>
 
-      <!-- 이동/추가 버튼 -->
-      <div class="hidden group-hover:inline-flex items-center gap-0.5 mr-1">
-        <button
-          v-if="!isFirst"
-          @click.stop="$emit('move-up', node)"
-          class="w-5 h-5 text-xs text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded flex items-center justify-center"
-          title="위로 이동"
-        >&#9650;</button>
-        <button
-          v-if="!isLast"
-          @click.stop="$emit('move-down', node)"
-          class="w-5 h-5 text-xs text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded flex items-center justify-center"
-          title="아래로 이동"
-        >&#9660;</button>
+      <!-- 추가 버튼 (URL이 없는 그룹메뉴만) -->
+      <div v-if="!node.menuUrl" class="hidden group-hover:inline-flex items-center gap-0.5 mr-1">
         <button
           @click.stop="$emit('add-child', node)"
           class="w-5 h-5 text-xs text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded flex items-center justify-center"
@@ -99,23 +87,25 @@
       </div>
     </div>
 
-    <!-- 자식 노드 재귀 -->
-    <template v-if="expanded && hasChildren">
-      <tree-node
-        v-for="(child, idx) in node.children"
-        :key="child.menuId"
-        :node="child"
-        :depth="depth + 1"
-        :selected-id="selectedId"
-        :is-first="idx === 0"
-        :is-last="idx === node.children.length - 1"
-        :ancestors="childAncestors"
-        @select="$emit('select', $event)"
-        @add-child="$emit('add-child', $event)"
-        @move-up="$emit('move-up', $event)"
-        @move-down="$emit('move-down', $event)"
-      />
-    </template>
+    <!-- 자식 노드 재귀 (항상 렌더링하여 드롭 영역 확보) -->
+    <div class="sortable-group"
+         :data-parent-id="node.menuId"
+         :data-has-url="node.menuUrl ? 'true' : undefined">
+      <template v-if="expanded">
+        <tree-node
+          v-for="(child, idx) in node.children"
+          :key="child.menuId"
+          :node="child"
+          :depth="depth + 1"
+          :selected-id="selectedId"
+          :is-first="idx === 0"
+          :is-last="idx === node.children.length - 1"
+          :ancestors="childAncestors"
+          @select="$emit('select', $event)"
+          @add-child="$emit('add-child', $event)"
+        />
+      </template>
+    </div>
   </div>
 </template>
 
@@ -131,7 +121,7 @@ const props = defineProps({
   ancestors: { type: Array, default: () => [] },
 })
 
-defineEmits(['select', 'add-child', 'move-up', 'move-down'])
+defineEmits(['select', 'add-child'])
 
 const expanded = ref(true)
 

@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 public class BillStdApprvReqResponseDto {
 
     private String apprvReqId;
-    private String billStdId;
+    private String billStdReqId;
     private String subsId;
     private String apprvReqContent;
     private String apprvRemarks;
@@ -18,8 +18,8 @@ public class BillStdApprvReqResponseDto {
     public String getApprvReqId() { return apprvReqId; }
     public void setApprvReqId(String apprvReqId) { this.apprvReqId = apprvReqId; }
 
-    public String getBillStdId() { return billStdId; }
-    public void setBillStdId(String billStdId) { this.billStdId = billStdId; }
+    public String getBillStdReqId() { return billStdReqId; }
+    public void setBillStdReqId(String billStdReqId) { this.billStdReqId = billStdReqId; }
 
     public String getSubsId() { return subsId; }
     public void setSubsId(String subsId) { this.subsId = subsId; }

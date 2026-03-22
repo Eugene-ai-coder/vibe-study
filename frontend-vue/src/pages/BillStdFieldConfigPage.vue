@@ -1,8 +1,5 @@
 <template>
   <div>
-    <Toast :message="successMsg" type="success" @close="successMsg = ''" />
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
-
     <div class="space-y-4">
       <h1 class="text-xl font-bold text-gray-800">과금기준 필드설정 관리</h1>
 
@@ -135,7 +132,7 @@ import {
   getFieldConfigs, createFieldConfig, updateFieldConfig,
   deleteFieldConfig, expireFieldConfig,
 } from '../api/billStdFieldConfigApi'
-import Toast from '../components/common/Toast.vue'
+import { useToast } from '../composables/useToast'
 import DataGrid from '../components/common/DataGrid.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
@@ -166,8 +163,7 @@ const selected = ref(null)
 const formData = reactive({ ...EMPTY_FORM })
 const isNew = ref(false)
 const isLoading = ref(false)
-const errorMsg = ref('')
-const successMsg = ref('')
+const { showSuccess, showError } = useToast()
 
 const confirmOpen = ref(false)
 const confirmMessage = ref('')
@@ -202,7 +198,6 @@ const toRequestDto = () => ({
   effEndDt: formData.effEndDt || '99991231',
 })
 
-const clearMessages = () => { errorMsg.value = ''; successMsg.value = '' }
 
 const fetchList = async () => {
   const params = {}
@@ -212,14 +207,13 @@ const fetchList = async () => {
 }
 
 const handleSearch = async () => {
-  clearMessages()
   isLoading.value = true
   try {
     await fetchList()
     selected.value = null
     Object.assign(formData, EMPTY_FORM)
     isNew.value = false
-  } catch { errorMsg.value = '조회에 실패했습니다.' }
+  } catch { showError('조회에 실패했습니다.') }
   finally { isLoading.value = false }
 }
 
@@ -233,13 +227,11 @@ const handleNewClick = () => {
   selected.value = null
   Object.assign(formData, EMPTY_FORM)
   isNew.value = true
-  clearMessages()
 }
 
 const handleSaveClick = () => {
-  clearMessages()
   if (!formData.svcCd || !formData.fieldCd || !formData.effStartDt || !formData.fieldNm || !formData.fieldType) {
-    errorMsg.value = '필수 항목을 입력해 주세요.'
+    showError('필수 항목을 입력해 주세요.')
     return
   }
   confirmMessage.value = '필드설정을 등록하시겠습니까?'
@@ -256,21 +248,20 @@ const executeSave = async () => {
     toFormData(created)
     selected.value = created
     isNew.value = false
-    successMsg.value = '등록이 완료되었습니다.'
+    showSuccess('등록이 완료되었습니다.')
     await fetchList()
   } catch (err) {
     const status = err?.response?.status
-    if (status === 409) errorMsg.value = '이미 존재하는 필드설정입니다.'
-    else if (status === 400) errorMsg.value = err?.response?.data?.message || '입력값을 확인해 주세요.'
-    else errorMsg.value = '등록에 실패했습니다.'
+    if (status === 409) showError('이미 존재하는 필드설정입니다.')
+    else if (status === 400) showError(err?.response?.data?.message || '입력값을 확인해 주세요.')
+    else showError('등록에 실패했습니다.')
   }
 }
 
 const handleUpdateClick = () => {
-  clearMessages()
-  if (!selected.value) { errorMsg.value = '목록에서 항목을 선택해 주세요.'; return }
+  if (!selected.value) { showError('목록에서 항목을 선택해 주세요.'); return }
   if (!formData.fieldNm || !formData.fieldType) {
-    errorMsg.value = '필수 항목을 입력해 주세요.'
+    showError('필수 항목을 입력해 주세요.')
     return
   }
   confirmMessage.value = '필드설정을 변경하시겠습니까?'
@@ -288,16 +279,15 @@ const executeUpdate = async () => {
     )
     toFormData(updated)
     selected.value = updated
-    successMsg.value = '변경이 완료되었습니다.'
+    showSuccess('변경이 완료되었습니다.')
     await fetchList()
   } catch (err) {
-    errorMsg.value = err?.response?.data?.message || '변경에 실패했습니다.'
+    showError(err?.response?.data?.message || '변경에 실패했습니다.')
   }
 }
 
 const handleDeleteClick = () => {
-  if (!selected.value) { errorMsg.value = '목록에서 항목을 선택해 주세요.'; return }
-  clearMessages()
+  if (!selected.value) { showError('목록에서 항목을 선택해 주세요.'); return }
   confirmMessage.value = '삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.'
   confirmText.value = '삭제'
   confirmType.value = 'danger'
@@ -312,18 +302,17 @@ const executeDelete = async () => {
     selected.value = null
     Object.assign(formData, EMPTY_FORM)
     isNew.value = false
-    successMsg.value = '삭제가 완료되었습니다.'
+    showSuccess('삭제가 완료되었습니다.')
     await fetchList()
   } catch (err) {
     const status = err?.response?.status
-    if (status === 409) errorMsg.value = '사용 중인 필드는 삭제할 수 없습니다. 사용종료 기능을 이용해 주세요.'
-    else errorMsg.value = '삭제에 실패했습니다.'
+    if (status === 409) showError('사용 중인 필드는 삭제할 수 없습니다. 사용종료 기능을 이용해 주세요.')
+    else showError('삭제에 실패했습니다.')
   }
 }
 
 const handleExpireClick = () => {
-  if (!selected.value) { errorMsg.value = '목록에서 항목을 선택해 주세요.'; return }
-  clearMessages()
+  if (!selected.value) { showError('목록에서 항목을 선택해 주세요.'); return }
   confirmMessage.value = '필드설정을 사용종료 처리하시겠습니까?'
   confirmText.value = '사용종료'
   confirmType.value = 'primary'
@@ -337,10 +326,10 @@ const executeExpire = async () => {
     const expired = await expireFieldConfig(selected.value.svcCd, selected.value.fieldCd, selected.value.effStartDt)
     toFormData(expired)
     selected.value = expired
-    successMsg.value = '사용종료 처리가 완료되었습니다.'
+    showSuccess('사용종료 처리가 완료되었습니다.')
     await fetchList()
   } catch (err) {
-    errorMsg.value = err?.response?.data?.message || '사용종료 처리에 실패했습니다.'
+    showError(err?.response?.data?.message || '사용종료 처리에 실패했습니다.')
   }
 }
 </script>

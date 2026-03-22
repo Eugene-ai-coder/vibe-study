@@ -6,17 +6,22 @@ public class SubsBillStdResponseDto {
     private String subsId;
     private String subsNm;
     private String subsStatusCd;
+    private String svcCd;
+    private String basicProdCd;
     private String billStdId;
     private String billStdNm;
     private LocalDateTime effStartDt;
     private LocalDateTime effEndDt;
 
     public SubsBillStdResponseDto(String subsId, String subsNm, String subsStatusCd,
+            String svcCd, String basicProdCd,
             String billStdId, String billStdNm,
             LocalDateTime effStartDt, LocalDateTime effEndDt) {
         this.subsId = subsId;
         this.subsNm = subsNm;
         this.subsStatusCd = subsStatusCd;
+        this.svcCd = svcCd;
+        this.basicProdCd = basicProdCd;
         this.billStdId = billStdId;
         this.billStdNm = billStdNm;
         this.effStartDt = effStartDt;
@@ -31,6 +36,12 @@ public class SubsBillStdResponseDto {
 
     public String getSubsStatusCd() { return subsStatusCd; }
     public void setSubsStatusCd(String subsStatusCd) { this.subsStatusCd = subsStatusCd; }
+
+    public String getSvcCd() { return svcCd; }
+    public void setSvcCd(String svcCd) { this.svcCd = svcCd; }
+
+    public String getBasicProdCd() { return basicProdCd; }
+    public void setBasicProdCd(String basicProdCd) { this.basicProdCd = basicProdCd; }
 
     public String getBillStdId() { return billStdId; }
     public void setBillStdId(String billStdId) { this.billStdId = billStdId; }

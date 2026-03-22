@@ -19,7 +19,7 @@ public class SubscriptionDataInitializer implements CommandLineRunner {
 
         String[] statuses = {"ACTIVE", "SUSPENDED", "TERMINATED", "PENDING"};
         String[] svcCodes = {"SVC01", "SVC02", "SVC03"};
-        String[] feeProdCodes = {"FP_A", "FP_B", "FP_C", "FP_D", "FP_E", "FP_F"};
+        String[] basicProdCodes = {"FP_A", "FP_B", "FP_C", "FP_D", "FP_E", "FP_F"};
         LocalDateTime now = LocalDateTime.now();
 
         for (int i = 1; i <= 30; i++) {
@@ -27,7 +27,7 @@ public class SubscriptionDataInitializer implements CommandLineRunner {
             s.setSubsId(String.format("SUBS%04d", i));
             s.setSubsNm("가입자" + i);
             s.setSvcCd(svcCodes[i % 3]);
-            s.setFeeProdCd(feeProdCodes[i % 6]);
+            s.setBasicProdCd(basicProdCodes[i % 6]);
             s.setSubsStatusCd(statuses[(i - 1) % 4]);
             s.setSubsDt(now.minusDays(30L * i));
             s.setChgDt(i % 3 == 0 ? now.minusDays(5) : null);

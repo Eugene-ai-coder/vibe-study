@@ -1,8 +1,5 @@
 <template>
   <div>
-    <Toast :message="successMsg" type="success" @close="successMsg = ''" />
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
-
     <div class="space-y-4">
       <h1 class="text-xl font-bold text-gray-800">대표가입 관리</h1>
 
@@ -131,7 +128,7 @@ import {
   saveSubscriptionMainBulk
 } from '../api/subscriptionMainApi'
 import { commonCodeApi } from '../api/commonCodeApi'
-import Toast from '../components/common/Toast.vue'
+import { useToast } from '../composables/useToast'
 import DataGrid from '../components/common/DataGrid.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
@@ -139,15 +136,15 @@ import SubscriptionSearchPopup from '../components/common/SubscriptionSearchPopu
 import { useCommonCodeLabel } from '../composables/useCommonCodeLabel'
 
 const auth = useAuthStore()
-const { getLabel } = useCommonCodeLabel(['svc_cd', 'fee_prod_cd'])
+const { getLabel } = useCommonCodeLabel(['svc_cd', 'basic_prod_cd'])
 
 const columns = computed(() => [
   { key: 'subsId', header: '가입ID', size: 120 },
   { key: 'subsNm', header: '가입명', size: 150 },
   { key: 'svcCd', header: '서비스', size: 120,
     cell: { props: ['value'], setup(props) { return () => getLabel('svc_cd', props.value) } } },
-  { key: 'feeProdCd', header: '요금상품', size: 120,
-    cell: { props: ['value'], setup(props) { return () => getLabel('fee_prod_cd', props.value) } } },
+  { key: 'basicProdCd', header: '기본상품코드', size: 120,
+    cell: { props: ['value'], setup(props) { return () => getLabel('basic_prod_cd', props.value) } } },
   { key: 'mainSubsYn', header: '대표가입여부', size: 100 },
   { key: 'mainSubsId', header: '대표가입ID', size: 120 },
   { key: 'changeYn', header: '변경여부', size: 80, filterable: false, sortable: false },
@@ -160,8 +157,7 @@ const searchType = ref('가입ID')
 const keyword = ref('')
 const items = ref([])
 const isLoading = ref(false)
-const errorMsg = ref('')
-const successMsg = ref('')
+const { showSuccess, showError } = useToast()
 const fileInputRef = ref(null)
 
 const page = ref(0)
@@ -180,7 +176,6 @@ const focusedSubsId = ref(null)
 const EMPTY_FORM = { subsId: '', mainSubsYn: 'Y', mainSubsId: '' }
 const formData = reactive({ ...EMPTY_FORM })
 
-const clearMessages = () => { errorMsg.value = ''; successMsg.value = '' }
 
 const getSearchParams = () => ({
   svcCd: svcCd.value || undefined,
@@ -262,13 +257,12 @@ onMounted(async () => {
 })
 
 const handleSearch = async () => {
-  if (!keyword.value.trim()) { errorMsg.value = '조회조건을 입력해 주세요.'; return }
-  if (keyword.value.trim().length < 2) { errorMsg.value = '조회조건은 2자 이상 입력해 주세요.'; return }
-  clearMessages()
+  if (!keyword.value.trim()) { showError('조회조건을 입력해 주세요.'); return }
+  if (keyword.value.trim().length < 2) { showError('조회조건은 2자 이상 입력해 주세요.'); return }
   isLoading.value = true
   try {
     await fetchList(0)
-  } catch { errorMsg.value = '조회에 실패했습니다.' }
+  } catch { showError('조회에 실패했습니다.') }
   finally { isLoading.value = false }
 }
 
@@ -305,8 +299,7 @@ const handlePopupSelect = (subsId) => {
 }
 
 const handleExcelDownload = async () => {
-  clearMessages()
-  if (selectedIds.value.size === 0) { errorMsg.value = '다운로드할 행을 선택해 주세요.'; return }
+  if (selectedIds.value.size === 0) { showError('다운로드할 행을 선택해 주세요.'); return }
   try {
     const selectedItems = mergedData.value
       .filter(r => selectedIds.value.has(r.subsId))
@@ -320,14 +313,13 @@ const handleExcelDownload = async () => {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-    successMsg.value = '엑셀 다운로드가 완료되었습니다.'
+    showSuccess('엑셀 다운로드가 완료되었습니다.')
   } catch {
-    errorMsg.value = '엑셀 다운로드에 실패했습니다.'
+    showError('엑셀 다운로드에 실패했습니다.')
   }
 }
 
 const handleExcelUpload = async (event) => {
-  clearMessages()
   const file = event.target.files[0]
   if (!file) return
   try {
@@ -335,7 +327,7 @@ const handleExcelUpload = async (event) => {
     let validCount = 0
     results.forEach(row => {
       const inGrid = items.value.some(r => r.subsId === row.subsId)
-      const extra = inGrid ? {} : { subsNm: '', svcCd: '', feeProdCd: '' }
+      const extra = inGrid ? {} : { subsNm: '', svcCd: '', basicProdCd: '' }
       upsertUploadedRow(row.subsId, row.mainSubsYn, row.mainSubsId, extra)
 
       if (!row.valid) {
@@ -347,16 +339,15 @@ const handleExcelUpload = async (event) => {
         validCount++
       }
     })
-    successMsg.value = `${results.length}건 업로드 완료 (유효: ${validCount}건, 오류: ${results.length - validCount}건)`
+    showSuccess(`${results.length}건 업로드 완료 (유효: ${validCount}건, 오류: ${results.length - validCount}건)`)
   } catch {
-    errorMsg.value = '엑셀 업로드에 실패했습니다.'
+    showError('엑셀 업로드에 실패했습니다.')
   }
   event.target.value = ''
 }
 
 const handleBulkSave = () => {
-  clearMessages()
-  if (selectedIds.value.size === 0) { errorMsg.value = '저장할 행을 선택해 주세요.'; return }
+  if (selectedIds.value.size === 0) { showError('저장할 행을 선택해 주세요.'); return }
   saveConfirmOpen.value = true
 }
 
@@ -380,13 +371,13 @@ const handleBulkSaveConfirm = async () => {
     const successCount = results.filter(r => r.valid).length
     const failCount = results.length - successCount
     if (failCount === 0) {
-      successMsg.value = `${successCount}건 저장이 완료되었습니다.`
+      showSuccess(`${successCount}건 저장이 완료되었습니다.`)
     } else {
-      successMsg.value = `${successCount}건 저장 완료, ${failCount}건 실패`
+      showSuccess(`${successCount}건 저장 완료, ${failCount}건 실패`)
     }
     await fetchList(page.value)
   } catch {
-    errorMsg.value = '저장에 실패했습니다.'
+    showError('저장에 실패했습니다.')
   }
 }
 </script>

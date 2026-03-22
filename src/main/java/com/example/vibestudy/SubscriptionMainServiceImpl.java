@@ -15,16 +15,12 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 @Service
 public class SubscriptionMainServiceImpl implements SubscriptionMainService {
-
-    private static final LocalDateTime MAX_DT = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
-    private static final DateTimeFormatter ID_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
     private final SubscriptionMainRepository repository;
     private final SubscriptionRepository subscriptionRepository;
@@ -53,7 +49,7 @@ public class SubscriptionMainServiceImpl implements SubscriptionMainService {
             dto.setSubsId((String) r[0]);
             dto.setSubsNm((String) r[1]);
             dto.setSvcCd((String) r[2]);
-            dto.setFeeProdCd((String) r[3]);
+            dto.setBasicProdCd((String) r[3]);
             dto.setMainSubsYn(r[4] != null ? r[4].toString() : "N");
             dto.setMainSubsId((String) r[5]);
             return dto;
@@ -88,7 +84,7 @@ public class SubscriptionMainServiceImpl implements SubscriptionMainService {
         sm.setMainSubsYn(dto.getMainSubsYn());
         sm.setMainSubsId("Y".equals(dto.getMainSubsYn()) ? null : dto.getMainSubsId());
         sm.setEffStartDt(now);
-        sm.setEffEndDt(MAX_DT);
+        sm.setEffEndDt(IdGenerator.MAX_DT);
         sm.setCreatedBy(SecurityUtils.getCurrentUserId());
         sm.setCreatedDt(now);
 
@@ -96,7 +92,7 @@ public class SubscriptionMainServiceImpl implements SubscriptionMainService {
     }
 
     private String generateId() {
-        return "SM" + LocalDateTime.now().format(ID_FORMATTER);
+        return IdGenerator.generate("SM");
     }
 
     @Override

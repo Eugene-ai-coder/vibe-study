@@ -6,20 +6,20 @@ public class ApprvReqListResponseDto {
 
     private String subsId;
     private String subsNm;
-    private String billStdId;
+    private String billStdReqId;
     private String stdRegStatCd;
-    private LocalDateTime billStdRegDt;
+    private LocalDateTime firstReqDt;
     private LocalDateTime apprvReqDt;
     private String apprvReqId;
 
-    public ApprvReqListResponseDto(String subsId, String subsNm, String billStdId,
-                                   String stdRegStatCd, LocalDateTime billStdRegDt,
+    public ApprvReqListResponseDto(String subsId, String subsNm, String billStdReqId,
+                                   String stdRegStatCd, LocalDateTime firstReqDt,
                                    LocalDateTime apprvReqDt, String apprvReqId) {
         this.subsId = subsId;
         this.subsNm = subsNm;
-        this.billStdId = billStdId;
+        this.billStdReqId = billStdReqId;
         this.stdRegStatCd = stdRegStatCd;
-        this.billStdRegDt = billStdRegDt;
+        this.firstReqDt = firstReqDt;
         this.apprvReqDt = apprvReqDt;
         this.apprvReqId = apprvReqId;
     }
@@ -32,14 +32,14 @@ public class ApprvReqListResponseDto {
     public String getSubsNm() { return subsNm; }
     public void setSubsNm(String subsNm) { this.subsNm = subsNm; }
 
-    public String getBillStdId() { return billStdId; }
-    public void setBillStdId(String billStdId) { this.billStdId = billStdId; }
+    public String getBillStdReqId() { return billStdReqId; }
+    public void setBillStdReqId(String billStdReqId) { this.billStdReqId = billStdReqId; }
 
     public String getStdRegStatCd() { return stdRegStatCd; }
     public void setStdRegStatCd(String stdRegStatCd) { this.stdRegStatCd = stdRegStatCd; }
 
-    public LocalDateTime getBillStdRegDt() { return billStdRegDt; }
-    public void setBillStdRegDt(LocalDateTime billStdRegDt) { this.billStdRegDt = billStdRegDt; }
+    public LocalDateTime getFirstReqDt() { return firstReqDt; }
+    public void setFirstReqDt(LocalDateTime firstReqDt) { this.firstReqDt = firstReqDt; }
 
     public LocalDateTime getApprvReqDt() { return apprvReqDt; }
     public void setApprvReqDt(LocalDateTime apprvReqDt) { this.apprvReqDt = apprvReqDt; }

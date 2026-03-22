@@ -1,6 +1,5 @@
 <template>
   <div class="space-y-6">
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
     <h1 class="text-xl font-bold text-gray-800">대시보드</h1>
 
     <!-- 현황 카드 -->
@@ -89,20 +88,20 @@ import { useRouter } from 'vue-router'
 import { searchSubscriptions } from '../../api/subscriptionApi'
 import { getTodoList } from '../../api/billStdReqApi'
 import { useCommonCodeLabel } from '../../composables/useCommonCodeLabel'
-import Toast from '../common/Toast.vue'
+import { useToast } from '../../composables/useToast'
 
 const router = useRouter()
 const { getLabel } = useCommonCodeLabel(['svc_cd', 'std_reg_stat_cd'])
 const items = ref([])
 const todoItems = ref([])
-const errorMsg = ref('')
+const { showError } = useToast()
 
 onMounted(async () => {
   try {
     const page = await searchSubscriptions({})
     items.value = page.content || []
   } catch {
-    errorMsg.value = '대시보드 데이터를 불러오지 못했습니다.'
+    showError('대시보드 데이터를 불러오지 못했습니다.')
   }
   try {
     todoItems.value = await getTodoList()

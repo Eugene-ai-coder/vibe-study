@@ -1,13 +1,10 @@
 <template>
   <div>
-    <Toast :message="successMsg" type="success" @close="successMsg = ''" />
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
-
     <div class="space-y-4 pb-20">
       <h1 class="text-xl font-bold text-gray-800">학습 로그</h1>
 
       <!-- 등록 폼 -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">새 학습 내용 추가</h2>
 
         <div v-if="formErrors.length > 0" class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
@@ -40,11 +37,11 @@
 
       <!-- 목록 -->
       <template v-else>
-        <div v-if="logs.length === 0" class="bg-blue-50 border border-blue-200 rounded-xl p-6 text-center text-sm text-blue-700">
+        <div v-if="logs.length === 0" class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center text-sm text-blue-700">
           아직 저장된 학습 기록이 없습니다. 위 폼으로 첫 번째 학습 내용을 추가해보세요!
         </div>
 
-        <div v-else class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div v-else class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
           <div class="p-6 pb-4">
             <h2 class="text-lg font-semibold text-gray-800">학습 기록 목록</h2>
           </div>
@@ -77,7 +74,7 @@
 
     <!-- 수정 모달 -->
     <div v-if="editingLog" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h3 class="text-base font-semibold text-gray-800">학습 내용 수정</h3>
           <button @click="editingLog = null" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
@@ -135,14 +132,13 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { getLogs, createLog, updateLog, deleteLog } from '../api/studyLogApi'
-import Toast from '../components/common/Toast.vue'
+import { useToast } from '../composables/useToast'
 import Loading from '../components/common/Loading.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 
 const logs = ref([])
 const isLoading = ref(true)
-const errorMsg = ref('')
-const successMsg = ref('')
+const { showSuccess, showError } = useToast()
 
 // 등록 폼
 const newContent = ref('')
@@ -176,7 +172,7 @@ watch(editingLog, (log) => {
 const fetchLogs = async () => {
   isLoading.value = true
   try { logs.value = await getLogs() }
-  catch { errorMsg.value = '서버와 연결할 수 없습니다.' }
+  catch { showError('서버와 연결할 수 없습니다.') }
   finally { isLoading.value = false }
 }
 
@@ -205,7 +201,7 @@ const handleSaveConfirm = async () => {
       logs.value = [...logs.value, newLog]
       newContent.value = ''
       newDate.value = ''
-      successMsg.value = '등록이 완료되었습니다.'
+      showSuccess('등록이 완료되었습니다.')
     } catch (err) {
       if (err.response?.data?.errors) formErrors.value = err.response.data.errors
       else formErrors.value = ['서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.']
@@ -216,7 +212,7 @@ const handleSaveConfirm = async () => {
       const updated = await updateLog(editingLog.value.id, { content: editContent.value, date: editDate.value })
       logs.value = logs.value.map(l => l.id === updated.id ? updated : l)
       editingLog.value = null
-      successMsg.value = '수정이 완료되었습니다.'
+      showSuccess('수정이 완료되었습니다.')
     } catch (err) {
       if (err.response?.data?.errors) editErrors.value = err.response.data.errors
       else editErrors.value = ['서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.']
@@ -230,7 +226,7 @@ const handleDelete = async () => {
   try {
     await deleteLog(id)
     logs.value = logs.value.filter(l => l.id !== id)
-    successMsg.value = '삭제가 완료되었습니다.'
-  } catch { errorMsg.value = '삭제에 실패했습니다.' }
+    showSuccess('삭제가 완료되었습니다.')
+  } catch { showError('삭제에 실패했습니다.') }
 }
 </script>

@@ -1,8 +1,5 @@
 <template>
   <div>
-    <Toast :message="successMsg" type="success" @close="successMsg = ''" />
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
-
     <div class="space-y-4">
       <h1 class="text-xl font-bold text-gray-800">워크플로우 정의</h1>
 
@@ -390,7 +387,7 @@ import { useAuthStore } from '../stores/auth'
 import { wfApi } from '../api/wfProcessDefApi'
 import { wfEntityTypeApi } from '../api/wfEntityTypeApi'
 import { commonCodeApi } from '../api/commonCodeApi'
-import Toast from '../components/common/Toast.vue'
+import { useToast } from '../composables/useToast'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 
@@ -422,13 +419,12 @@ const editingCell = reactive({ rowId: null, field: null, type: null })
 const editInput = ref(null)
 
 // 메시지 / 다이얼로그
-const successMsg = ref('')
-const errorMsg = ref('')
+const { showSuccess, showError } = useToast()
 const confirmOpen = ref(false)
 const confirmMessage = ref('')
 let pendingDeleteAction = null
 
-const clearMessages = () => { successMsg.value = ''; errorMsg.value = '' }
+const clearMessages = () => {}
 
 // --- 유틸 ---
 let tempIdCounter = 0
@@ -478,7 +474,7 @@ const fetchProcessDefs = async () => {
   try {
     processDefs.value = await wfApi.getProcessDefs()
   } catch {
-    errorMsg.value = '프로세스 목록 조회에 실패했습니다.'
+    showError('프로세스 목록 조회에 실패했습니다.')
   }
 }
 
@@ -494,20 +490,21 @@ const handleProcessSelect = async (proc) => {
       processDesc: detail.processDesc || '',
       useYn: detail.useYn || 'Y'
     })
-    // 엔티티 상태코드 목록 로드
-    await loadEntityStatusCodes(detail.entityType)
-    // 상태/전이 로드
-    await refreshStates()
-    await refreshTransitions()
+    // 독립 데이터 병렬 로드 (Task 템플릿은 states 의존이므로 후속 실행)
+    await Promise.all([
+      loadEntityStatusCodes(detail.entityType),
+      refreshStates(),
+      refreshTransitions()
+    ])
     await refreshTaskTemplates()
     activeTab.value = 'states'
   } catch (err) {
     const status = err?.response?.status
     if (status === 404) {
-      errorMsg.value = '대상을 찾을 수 없습니다. 목록을 갱신합니다.'
+      showError('대상을 찾을 수 없습니다. 목록을 갱신합니다.')
       await fetchProcessDefs()
     } else {
-      errorMsg.value = '프로세스 조회에 실패했습니다.'
+      showError('프로세스 조회에 실패했습니다.')
     }
   }
 }
@@ -530,11 +527,11 @@ const handleCancel = () => {
 const handleSave = async () => {
   clearMessages()
   if (!processForm.processNm.trim()) {
-    errorMsg.value = '프로세스명은 필수입니다.'
+    showError('프로세스명은 필수입니다.')
     return
   }
   if (!processForm.entityType.trim()) {
-    errorMsg.value = '엔티티유형은 필수입니다.'
+    showError('엔티티유형은 필수입니다.')
     return
   }
 
@@ -547,7 +544,7 @@ const handleSave = async () => {
       isNew.value = false
       selectedProcess.value = created
       await fetchProcessDefs()
-      successMsg.value = '프로세스가 등록되었습니다.'
+      showSuccess('프로세스가 등록되었습니다.')
       // 상태/전이/Task 초기화
       await refreshStates()
       await refreshTransitions()
@@ -562,19 +559,19 @@ const handleSave = async () => {
       // 상세 재조회
       const detail = await wfApi.getProcessDef(selectedProcess.value.processDefId)
       selectedProcess.value = detail
-      successMsg.value = '저장되었습니다.'
+      showSuccess('저장되었습니다.')
     }
   } catch (err) {
     const status = err?.response?.status
     if (status === 409) {
-      errorMsg.value = '충돌이 발생했습니다. 다시 시도해주세요.'
+      showError('충돌이 발생했습니다. 다시 시도해주세요.')
     } else if (status === 404) {
-      errorMsg.value = '대상을 찾을 수 없습니다. 목록을 갱신합니다.'
+      showError('대상을 찾을 수 없습니다. 목록을 갱신합니다.')
       await fetchProcessDefs()
     } else if (status === 400) {
-      errorMsg.value = err?.response?.data?.message || '입력값을 확인해 주세요.'
+      showError(err?.response?.data?.message || '입력값을 확인해 주세요.')
     } else {
-      errorMsg.value = '처리에 실패했습니다.'
+      showError('처리에 실패했습니다.')
     }
   }
 }
@@ -659,19 +656,19 @@ const handleDeleteState = (state) => {
   pendingDeleteAction = async () => {
     try {
       await wfApi.deleteState(state.stateDefId)
-      successMsg.value = '상태가 삭제되었습니다.'
+      showSuccess('상태가 삭제되었습니다.')
       await refreshStates()
       await refreshTransitions()
       await refreshTaskTemplates()
     } catch (err) {
       const status = err?.response?.status
       if (status === 409) {
-        errorMsg.value = '참조 중인 상태는 삭제할 수 없습니다.'
+        showError('참조 중인 상태는 삭제할 수 없습니다.')
       } else if (status === 404) {
-        errorMsg.value = '대상을 찾을 수 없습니다. 목록을 갱신합니다.'
+        showError('대상을 찾을 수 없습니다. 목록을 갱신합니다.')
         await refreshStates()
       } else {
-        errorMsg.value = '삭제에 실패했습니다.'
+        showError('삭제에 실패했습니다.')
       }
     }
   }
@@ -740,17 +737,17 @@ const handleDeleteTransition = (trans) => {
   pendingDeleteAction = async () => {
     try {
       await wfApi.deleteTransition(trans.transitionDefId)
-      successMsg.value = '전이가 삭제되었습니다.'
+      showSuccess('전이가 삭제되었습니다.')
       await refreshTransitions()
     } catch (err) {
       const status = err?.response?.status
       if (status === 409) {
-        errorMsg.value = '참조 중인 전이는 삭제할 수 없습니다.'
+        showError('참조 중인 전이는 삭제할 수 없습니다.')
       } else if (status === 404) {
-        errorMsg.value = '대상을 찾을 수 없습니다. 목록을 갱신합니다.'
+        showError('대상을 찾을 수 없습니다. 목록을 갱신합니다.')
         await refreshTransitions()
       } else {
-        errorMsg.value = '삭제에 실패했습니다.'
+        showError('삭제에 실패했습니다.')
       }
     }
   }
@@ -822,17 +819,17 @@ const handleDeleteTask = (task) => {
   pendingDeleteAction = async () => {
     try {
       await wfApi.deleteTaskTemplate(task.taskTemplateId)
-      successMsg.value = 'Task 템플릿이 삭제되었습니다.'
+      showSuccess('Task 템플릿이 삭제되었습니다.')
       await refreshTaskTemplates()
     } catch (err) {
       const status = err?.response?.status
       if (status === 409) {
-        errorMsg.value = '참조 중인 Task 템플릿은 삭제할 수 없습니다.'
+        showError('참조 중인 Task 템플릿은 삭제할 수 없습니다.')
       } else if (status === 404) {
-        errorMsg.value = '대상을 찾을 수 없습니다. 목록을 갱신합니다.'
+        showError('대상을 찾을 수 없습니다. 목록을 갱신합니다.')
         await refreshTaskTemplates()
       } else {
-        errorMsg.value = '삭제에 실패했습니다.'
+        showError('삭제에 실패했습니다.')
       }
     }
   }
@@ -851,18 +848,18 @@ const handleDeleteConfirm = async () => {
   // 프로세스 삭제
   try {
     await wfApi.deleteProcessDef(selectedProcess.value.processDefId)
-    successMsg.value = '프로세스가 삭제되었습니다.'
+    showSuccess('프로세스가 삭제되었습니다.')
     handleCancel()
     await fetchProcessDefs()
   } catch (err) {
     const status = err?.response?.status
     if (status === 409) {
-      errorMsg.value = '하위 정의가 존재하여 삭제할 수 없습니다.'
+      showError('하위 정의가 존재하여 삭제할 수 없습니다.')
     } else if (status === 404) {
-      errorMsg.value = '대상을 찾을 수 없습니다. 목록을 갱신합니다.'
+      showError('대상을 찾을 수 없습니다. 목록을 갱신합니다.')
       await fetchProcessDefs()
     } else {
-      errorMsg.value = '삭제에 실패했습니다.'
+      showError('삭제에 실패했습니다.')
     }
   }
 }
@@ -872,7 +869,7 @@ onMounted(async () => {
   try {
     entityTypes.value = await wfEntityTypeApi.getAll()
   } catch {
-    errorMsg.value = '엔티티유형 목록 조회에 실패했습니다.'
+    showError('엔티티유형 목록 조회에 실패했습니다.')
   }
   await fetchProcessDefs()
 })

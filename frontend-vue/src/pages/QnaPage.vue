@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
     <div class="space-y-4">
       <div class="flex items-center justify-between">
         <h1 class="text-xl font-bold text-gray-800">Q&A</h1>
@@ -28,7 +27,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { qnaApi } from '../api/qnaApi'
-import Toast from '../components/common/Toast.vue'
+import { useToast } from '../composables/useToast'
 import DataGrid from '../components/common/DataGrid.vue'
 
 const router = useRouter()
@@ -57,7 +56,7 @@ const page = ref(0)
 const totalPages = ref(0)
 const totalElements = ref(0)
 const pageSize = ref(10)
-const errorMsg = ref('')
+const { showError } = useToast()
 
 const fetchList = async (p = 0) => {
   try {
@@ -66,7 +65,7 @@ const fetchList = async (p = 0) => {
     page.value = result.number
     totalPages.value = result.totalPages
     totalElements.value = result.totalElements
-  } catch { errorMsg.value = '목록 조회에 실패했습니다.' }
+  } catch { showError('목록 조회에 실패했습니다.') }
 }
 
 onMounted(() => fetchList())

@@ -63,6 +63,13 @@ public class MenuController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/{menuId}/move")
+    public ResponseEntity<Void> moveMenu(@PathVariable String menuId,
+                                          @RequestBody MenuMoveRequestDto dto) {
+        menuService.moveMenu(menuId, dto);
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{menuId}")
     public ResponseEntity<Void> deleteMenu(@PathVariable String menuId) {
         menuService.deleteMenu(menuId);

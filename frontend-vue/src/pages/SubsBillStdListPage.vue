@@ -1,8 +1,5 @@
 <template>
   <div>
-    <Toast :message="successMsg" type="success" @close="successMsg = ''" />
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
-
     <div class="space-y-4">
       <h1 class="text-xl font-bold text-gray-800">가입별 과금기준 목록</h1>
 
@@ -44,18 +41,22 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getSubsBillStdList } from '../api/subsBillStdApi'
-import Toast from '../components/common/Toast.vue'
+import { useToast } from '../composables/useToast'
 import DataGrid from '../components/common/DataGrid.vue'
 import { useCommonCodeLabel } from '../composables/useCommonCodeLabel'
 
 const router = useRouter()
-const { getLabel } = useCommonCodeLabel(['subs_status_cd'])
+const { getLabel } = useCommonCodeLabel(['subs_status_cd', 'svc_cd', 'basic_prod_cd'])
 
 const columns = computed(() => [
   { key: 'subsId', header: '가입ID', size: 120 },
   { key: 'subsNm', header: '가입명', size: 150 },
   { key: 'subsStatusCd', header: '가입상태', size: 100,
     cell: { props: ['value'], setup(props) { return () => getLabel('subs_status_cd', props.value) } } },
+  { key: 'svcCd', header: '서비스코드', size: 100,
+    cell: { props: ['value'], setup(props) { return () => getLabel('svc_cd', props.value) } } },
+  { key: 'basicProdCd', header: '기본상품코드', size: 100,
+    cell: { props: ['value'], setup(props) { return () => getLabel('basic_prod_cd', props.value) } } },
   { key: 'billStdId', header: '과금기준ID', size: 160 },
   { key: 'billStdNm', header: '과금기준명', size: 150 },
   { key: 'effStartDt', header: '유효시작일', size: 160 },
@@ -64,8 +65,7 @@ const columns = computed(() => [
 
 const items = ref([])
 const keyword = ref('')
-const errorMsg = ref('')
-const successMsg = ref('')
+const { showError } = useToast()
 const isSearching = ref(false)
 
 const page = ref(0)
@@ -82,7 +82,7 @@ const fetchList = async (pageNum = 0) => {
     totalPages.value = data.totalPages
     totalElements.value = data.totalElements
   } catch {
-    errorMsg.value = '조회에 실패했습니다.'
+    showError('조회에 실패했습니다.')
   } finally {
     isSearching.value = false
   }

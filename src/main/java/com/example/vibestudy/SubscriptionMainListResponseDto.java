@@ -4,18 +4,18 @@ public class SubscriptionMainListResponseDto {
     private String subsId;
     private String subsNm;
     private String svcCd;
-    private String feeProdCd;
+    private String basicProdCd;
     private String mainSubsYn;
     private String mainSubsId;
 
     public SubscriptionMainListResponseDto() {}
 
-    public SubscriptionMainListResponseDto(String subsId, String subsNm, String svcCd, String feeProdCd,
+    public SubscriptionMainListResponseDto(String subsId, String subsNm, String svcCd, String basicProdCd,
                                            String mainSubsYn, String mainSubsId) {
         this.subsId = subsId;
         this.subsNm = subsNm;
         this.svcCd = svcCd;
-        this.feeProdCd = feeProdCd;
+        this.basicProdCd = basicProdCd;
         this.mainSubsYn = mainSubsYn;
         this.mainSubsId = mainSubsId;
     }
@@ -29,8 +29,8 @@ public class SubscriptionMainListResponseDto {
     public String getSvcCd() { return svcCd; }
     public void setSvcCd(String svcCd) { this.svcCd = svcCd; }
 
-    public String getFeeProdCd() { return feeProdCd; }
-    public void setFeeProdCd(String feeProdCd) { this.feeProdCd = feeProdCd; }
+    public String getBasicProdCd() { return basicProdCd; }
+    public void setBasicProdCd(String basicProdCd) { this.basicProdCd = basicProdCd; }
 
     public String getMainSubsYn() { return mainSubsYn; }
     public void setMainSubsYn(String mainSubsYn) { this.mainSubsYn = mainSubsYn; }

@@ -1,8 +1,5 @@
 <template>
   <div>
-    <Toast :message="successMsg" type="success" @close="successMsg = ''" />
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
-
     <div class="space-y-6">
       <h1 class="text-xl font-bold text-gray-800">사용자 관리</h1>
 
@@ -83,7 +80,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { getUsersPage, register } from '../api/authApi'
-import Toast from '../components/common/Toast.vue'
+import { useToast } from '../composables/useToast'
 import DataGrid from '../components/common/DataGrid.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
@@ -114,8 +111,7 @@ const totalElements = ref(0)
 const pageSize = ref(10)
 const form = reactive({ ...EMPTY_FORM })
 const saveConfirmOpen = ref(false)
-const errorMsg = ref('')
-const successMsg = ref('')
+const { showSuccess, showError } = useToast()
 const searchUserId = ref('')
 const searchNickname = ref('')
 const searchEmail = ref('')
@@ -136,15 +132,13 @@ const fetchUsers = async (params = {}, p = 0) => {
     totalPages.value = result.totalPages
     totalElements.value = result.totalElements
   } catch {
-    errorMsg.value = '사용자 목록 조회에 실패했습니다.'
+    showError('사용자 목록 조회에 실패했습니다.')
   }
 }
 
 onMounted(() => fetchUsers())
 
 const handleSearch = () => {
-  errorMsg.value = ''
-  successMsg.value = ''
   fetchUsers(getSearchParams(), 0)
 }
 
@@ -155,8 +149,6 @@ const handlePageChange = (newPage) => {
 const resetForm = () => Object.assign(form, EMPTY_FORM)
 
 const onRegister = () => {
-  errorMsg.value = ''
-  successMsg.value = ''
   saveConfirmOpen.value = true
 }
 
@@ -164,12 +156,12 @@ const handleRegisterConfirm = async () => {
   saveConfirmOpen.value = false
   try {
     await register({ ...form, createdBy: auth.user?.userId })
-    successMsg.value = '등록이 완료되었습니다.'
+    showSuccess('등록이 완료되었습니다.')
     resetForm()
     fetchUsers(getSearchParams(), 0)
   } catch (err) {
     const msg = err?.response?.data?.message
-    errorMsg.value = msg || '등록에 실패했습니다.'
+    showError(msg || '등록에 실패했습니다.')
   }
 }
 </script>

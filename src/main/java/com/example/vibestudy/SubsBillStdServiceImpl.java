@@ -33,6 +33,7 @@ public class SubsBillStdServiceImpl implements SubsBillStdService {
         String selectJpql = """
             SELECT new com.example.vibestudy.SubsBillStdResponseDto(
                 s.subsId, s.subsNm, s.subsStatusCd,
+                b.svcCd, b.basicProdCd,
                 b.billStdId, CAST(NULL AS string), b.effStartDt, b.effEndDt
             )
             """ + baseJpql + " ORDER BY s.subsId ASC";

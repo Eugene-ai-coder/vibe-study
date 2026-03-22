@@ -15,8 +15,8 @@ public class BillStdApprvReq {
     @Column(name = "apprv_req_id", length = 25, nullable = false)
     private String apprvReqId;
 
-    @Column(name = "bill_std_id", length = 20, nullable = false)
-    private String billStdId;
+    @Column(name = "bill_std_req_id", length = 25, nullable = false)
+    private String billStdReqId;
 
     @Column(name = "subs_id", length = 50, nullable = false)
     private String subsId;
@@ -48,8 +48,8 @@ public class BillStdApprvReq {
     public String getApprvReqId() { return apprvReqId; }
     public void setApprvReqId(String apprvReqId) { this.apprvReqId = apprvReqId; }
 
-    public String getBillStdId() { return billStdId; }
-    public void setBillStdId(String billStdId) { this.billStdId = billStdId; }
+    public String getBillStdReqId() { return billStdReqId; }
+    public void setBillStdReqId(String billStdReqId) { this.billStdReqId = billStdReqId; }
 
     public String getSubsId() { return subsId; }
     public void setSubsId(String subsId) { this.subsId = subsId; }

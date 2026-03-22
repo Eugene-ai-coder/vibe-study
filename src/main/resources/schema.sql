@@ -4,6 +4,24 @@
 -- ================================================================
 
 -- ================================================================
+-- 테이블명 : TB_USER (사용자)
+-- 설명     : 시스템 사용자 계정 관리
+-- ================================================================
+CREATE TABLE IF NOT EXISTS tb_user
+(
+    user_id                 VARCHAR(50)    NOT NULL,               -- 사용자ID
+    nickname                VARCHAR(50)    NOT NULL,               -- 닉네임
+    password                VARCHAR(255)   NOT NULL,               -- 비밀번호
+    email                   VARCHAR(100)   NOT NULL UNIQUE,        -- 이메일
+    account_status          TINYINT        NOT NULL DEFAULT 1,     -- 계정상태 (1=활성)
+    created_by              VARCHAR(50)    NOT NULL,               -- 생성자ID
+    created_dt              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_by              VARCHAR(50)    NULL,                   -- 수정자ID
+    updated_dt              DATETIME       NULL,
+    CONSTRAINT pk_tb_user PRIMARY KEY (user_id)
+);
+
+-- ================================================================
 -- 테이블명 : TB_SUBSCRIPTION (가입)
 -- 설명     : 서비스 가입 계약 단위 관리
 -- ================================================================
@@ -12,13 +30,14 @@ CREATE TABLE IF NOT EXISTS tb_subscription
     subs_id                 VARCHAR(50)    NOT NULL,               -- 가입ID (사용자 직접 입력)
     subs_nm                 VARCHAR(100)   NULL,                   -- 가입자명
     svc_cd                  VARCHAR(10)    NULL,                   -- 서비스코드
-    fee_prod_cd             VARCHAR(10)    NULL,                   -- 요금상품코드
+    basic_prod_cd           VARCHAR(20)    NULL,                   -- 기본상품코드
     subs_status_cd          VARCHAR(20)    NULL,                   -- 가입상태코드
     subs_dt                 DATETIME       NULL,                   -- 가입일시
     chg_dt                  DATETIME       NULL,                   -- 변경일시
     admin_id                VARCHAR(50)    NULL,                   -- 관리자ID
     created_by              VARCHAR(50)    NOT NULL,               -- 생성자ID
     created_dt              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    version                 BIGINT         DEFAULT 0,              -- 낙관적잠금버전
     updated_by              VARCHAR(50)    NULL,                   -- 수정자ID
     updated_dt              DATETIME       NULL,
     CONSTRAINT pk_tb_subscription PRIMARY KEY (subs_id)
@@ -29,14 +48,16 @@ CREATE TABLE IF NOT EXISTS tb_subscription
 -- ================================================================
 CREATE TABLE IF NOT EXISTS tb_bill_std
 (
-    bill_std_id             VARCHAR(20)    NOT NULL,               -- 과금기준ID
+    bill_std_id             VARCHAR(30)    NOT NULL,               -- 과금기준ID
     subs_id                 VARCHAR(50)    NOT NULL,               -- 가입ID
     bill_std_reg_dt         DATETIME       NULL,                   -- 과금기준등록일시
     svc_cd                  VARCHAR(10)    NULL,                   -- 서비스코드
+    basic_prod_cd           VARCHAR(20)    NULL,                   -- 기본상품코드
     last_eff_yn             CHAR(1)        DEFAULT 'Y',            -- 최종유효여부
     eff_start_dt            DATETIME       NULL,                   -- 유효시작일시
     eff_end_dt              DATETIME       DEFAULT '9999-12-31 23:59:59',  -- 유효종료일시
     bill_std_stat_cd        VARCHAR(10)    NULL,                   -- 과금기준상태코드
+    version                 BIGINT         DEFAULT 0,              -- 낙관적잠금버전
     created_by              VARCHAR(50)    NOT NULL,
     created_dt              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by              VARCHAR(50)    NULL,
@@ -44,9 +65,12 @@ CREATE TABLE IF NOT EXISTS tb_bill_std
     CONSTRAINT pk_tb_bill_std PRIMARY KEY (bill_std_id),
     CONSTRAINT fk_tb_bill_std_subs FOREIGN KEY (subs_id) REFERENCES tb_subscription (subs_id)
 );
+CREATE INDEX idx_tb_bill_std_subs_id ON tb_bill_std (subs_id);
+CREATE INDEX idx_tb_bill_std_temporal ON tb_bill_std (eff_start_dt, eff_end_dt);
 
 -- ================================================================
 -- 테이블명 : TB_BILL_STD_FIELD_CONFIG (과금기준 필드설정)
+-- 참고     : eff_start_dt/eff_end_dt는 일(日) 단위 유효기간으로 VARCHAR(8) YYYYMMDD 사용 (의도된 설계)
 -- ================================================================
 CREATE TABLE IF NOT EXISTS tb_bill_std_field_config
 (
@@ -72,7 +96,7 @@ CREATE TABLE IF NOT EXISTS tb_bill_std_field_config
 -- ================================================================
 CREATE TABLE IF NOT EXISTS tb_bill_std_field_value
 (
-    bill_std_id             VARCHAR(20)    NOT NULL,               -- 과금기준ID
+    bill_std_id             VARCHAR(30)    NOT NULL,               -- 과금기준ID
     field_cd                VARCHAR(50)    NOT NULL,               -- 필드코드
     field_value             VARCHAR(500)   NULL,                   -- 필드값
     created_by              VARCHAR(50)    NOT NULL,
@@ -82,6 +106,7 @@ CREATE TABLE IF NOT EXISTS tb_bill_std_field_value
     CONSTRAINT pk_tb_bill_std_field_value PRIMARY KEY (bill_std_id, field_cd),
     CONSTRAINT fk_tb_bill_std_field_value_bs FOREIGN KEY (bill_std_id) REFERENCES tb_bill_std (bill_std_id)
 );
+CREATE INDEX idx_tb_bill_std_fv_field_cd ON tb_bill_std_field_value (field_cd);
 
 -- ================================================================
 -- 테이블명 : TB_COMMON_CODE (공통코드 헤더)
@@ -119,6 +144,7 @@ CREATE TABLE IF NOT EXISTS tb_common_dtl_code
     CONSTRAINT pk_tb_common_dtl_code PRIMARY KEY (common_code, common_dtl_code),
     CONSTRAINT fk_common_dtl_code_hdr FOREIGN KEY (common_code) REFERENCES tb_common_code (common_code)
 );
+CREATE INDEX idx_tb_common_dtl_code_sort ON tb_common_dtl_code (common_code, sort_order);
 
 -- ================================================================
 -- 테이블명 : TB_QNA (Q&A 게시글)
@@ -154,20 +180,23 @@ CREATE TABLE IF NOT EXISTS tb_qna_comment
     updated_by          VARCHAR(50)     NULL,
     updated_dt          DATETIME        NULL,
     CONSTRAINT pk_tb_qna_comment PRIMARY KEY (comment_id),
-    CONSTRAINT fk_qna_comment_qna FOREIGN KEY (qna_id) REFERENCES tb_qna (qna_id)
+    CONSTRAINT fk_qna_comment_qna FOREIGN KEY (qna_id) REFERENCES tb_qna (qna_id),
+    CONSTRAINT fk_qna_comment_parent FOREIGN KEY (parent_comment_id) REFERENCES tb_qna_comment (comment_id)
 );
+CREATE INDEX idx_tb_qna_comment_parent ON tb_qna_comment (parent_comment_id);
 
 -- ================================================================
 -- 테이블명 : TB_SPECIAL_SUBSCRIPTION (특수가입)
+-- 참고     : eff_start_dt/eff_end_dt는 일(日) 단위 유효기간으로 VARCHAR(8) YYYYMMDD 사용 (의도된 설계)
 -- ================================================================
 CREATE TABLE IF NOT EXISTS tb_special_subscription
 (
-    subs_bill_std_id        VARCHAR(20)    NOT NULL,
+    subs_bill_std_id        VARCHAR(30)    NOT NULL,
     eff_start_dt            VARCHAR(8)     NOT NULL,
     subs_id                 VARCHAR(50)    NOT NULL,
     svc_cd                  VARCHAR(10)    NULL,
     eff_end_dt              VARCHAR(8)     DEFAULT '99991231',
-    last_eff_yn             CHAR(1)        NULL,
+    last_eff_yn             CHAR(1)        NOT NULL DEFAULT 'Y',
     spec_subs_stat_cd       VARCHAR(10)    NULL,
     cntrc_cap_kmh           DECIMAL(18,4)  NULL,
     cntrc_amt               DECIMAL(18,2)  NULL,
@@ -177,7 +206,9 @@ CREATE TABLE IF NOT EXISTS tb_special_subscription
     created_dt              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by              VARCHAR(50)    NULL,
     updated_dt              DATETIME       NULL,
-    CONSTRAINT pk_tb_special_subscription PRIMARY KEY (subs_bill_std_id, eff_start_dt)
+    CONSTRAINT pk_tb_special_subscription PRIMARY KEY (subs_bill_std_id, eff_start_dt),
+    CONSTRAINT fk_tb_spcl_subs_subs FOREIGN KEY (subs_id) REFERENCES tb_subscription (subs_id),
+    CONSTRAINT fk_tb_spcl_subs_bill_std FOREIGN KEY (subs_bill_std_id) REFERENCES tb_bill_std (bill_std_id)
 );
 
 -- ================================================================
@@ -185,10 +216,10 @@ CREATE TABLE IF NOT EXISTS tb_special_subscription
 -- ================================================================
 CREATE TABLE IF NOT EXISTS tb_menu
 (
-    menu_id             VARCHAR(20)    NOT NULL,
+    menu_id             VARCHAR(30)    NOT NULL,
     menu_nm             VARCHAR(100)   NOT NULL,
     menu_url            VARCHAR(200)   NULL,
-    parent_menu_id      VARCHAR(20)    NULL,
+    parent_menu_id      VARCHAR(30)    NULL,
     sort_order          INTEGER        DEFAULT 0,
     use_yn              CHAR(1)        DEFAULT 'Y',
     menu_level          INTEGER        DEFAULT 1,
@@ -213,6 +244,7 @@ CREATE TABLE IF NOT EXISTS tb_user_role
     updated_dt          DATETIME       NULL,
     CONSTRAINT pk_tb_user_role PRIMARY KEY (user_id, role_cd),
     CONSTRAINT fk_tb_user_role_user FOREIGN KEY (user_id) REFERENCES tb_user (user_id)
+    -- role_cd는 공통코드(role_cd 그룹) 참조 — 복합PK 구조상 단순 FK 불가, 애플리케이션 레벨 검증
 );
 
 -- ================================================================
@@ -220,7 +252,7 @@ CREATE TABLE IF NOT EXISTS tb_user_role
 -- ================================================================
 CREATE TABLE IF NOT EXISTS tb_menu_role
 (
-    menu_id             VARCHAR(20)    NOT NULL,
+    menu_id             VARCHAR(30)    NOT NULL,
     role_cd             VARCHAR(20)    NOT NULL,
     created_by          VARCHAR(50)    NOT NULL,
     created_dt          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -228,6 +260,7 @@ CREATE TABLE IF NOT EXISTS tb_menu_role
     updated_dt          DATETIME       NULL,
     CONSTRAINT pk_tb_menu_role PRIMARY KEY (menu_id, role_cd),
     CONSTRAINT fk_tb_menu_role_menu FOREIGN KEY (menu_id) REFERENCES tb_menu (menu_id)
+    -- role_cd는 공통코드(role_cd 그룹) 참조 — 복합PK 구조상 단순 FK 불가, 애플리케이션 레벨 검증
 );
 
 -- ================================================================
@@ -420,7 +453,7 @@ CREATE TABLE IF NOT EXISTS tb_wf_entity_type_def
 CREATE TABLE IF NOT EXISTS tb_bill_std_apprv_req
 (
     apprv_req_id        VARCHAR(25)    NOT NULL,               -- 결재요청ID
-    bill_std_id         VARCHAR(20)    NOT NULL,               -- 과금기준ID
+    bill_std_req_id     VARCHAR(25)    NOT NULL,               -- 과금기준신청ID
     subs_id             VARCHAR(50)    NOT NULL,               -- 가입ID
     apprv_req_content   TEXT           NOT NULL,               -- 결재요청내용 (스냅샷 JSON)
     apprv_remarks       VARCHAR(500)   NULL,                   -- 결재 특기사항
@@ -430,10 +463,9 @@ CREATE TABLE IF NOT EXISTS tb_bill_std_apprv_req
     updated_by          VARCHAR(50)    NULL,
     updated_dt          DATETIME       NULL,
     CONSTRAINT pk_tb_bill_std_apprv_req PRIMARY KEY (apprv_req_id),
-    CONSTRAINT fk_tb_apprv_req_bill_std FOREIGN KEY (bill_std_id) REFERENCES tb_bill_std (bill_std_id),
     CONSTRAINT fk_tb_apprv_req_subs FOREIGN KEY (subs_id) REFERENCES tb_subscription (subs_id)
 );
-CREATE INDEX idx_tb_bill_std_apprv_req_bill_std ON tb_bill_std_apprv_req (bill_std_id);
+CREATE INDEX idx_tb_bill_std_apprv_req_bill_std_req ON tb_bill_std_apprv_req (bill_std_req_id);
 CREATE INDEX idx_tb_bill_std_apprv_req_subs ON tb_bill_std_apprv_req (subs_id);
 
 -- ================================================================
@@ -449,9 +481,11 @@ CREATE TABLE IF NOT EXISTS tb_bill_std_req
     eff_end_dt              DATETIME       NOT NULL DEFAULT '9999-12-31 23:59:59',
     req_type_cd             VARCHAR(20)    NOT NULL,
     std_reg_stat_cd         VARCHAR(20)    NOT NULL,
-    bill_std_id             VARCHAR(20)    NOT NULL,
+    bill_std_id             VARCHAR(30)    NOT NULL,
     subs_id                 VARCHAR(50)    NOT NULL,
     svc_cd                  VARCHAR(10)    NOT NULL,
+    basic_prod_cd           VARCHAR(20)    NULL,                   -- 기본상품코드
+    version                 BIGINT         DEFAULT 0,              -- 낙관적잠금버전
     created_by              VARCHAR(50)    NOT NULL,
     created_dt              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by              VARCHAR(50)    NULL,
@@ -461,6 +495,7 @@ CREATE TABLE IF NOT EXISTS tb_bill_std_req
 );
 CREATE INDEX idx_tb_bill_std_req_subs ON tb_bill_std_req (subs_id);
 CREATE INDEX idx_tb_bill_std_req_current ON tb_bill_std_req (bill_std_req_id, eff_end_dt);
+CREATE INDEX idx_tb_bill_std_req_temporal ON tb_bill_std_req (eff_start_dt, eff_end_dt);
 
 -- ================================================================
 -- 테이블명 : TB_BILL_STD_REQ_FIELD_VALUE (과금기준신청 필드값)
@@ -477,6 +512,7 @@ CREATE TABLE IF NOT EXISTS tb_bill_std_req_field_value
     CONSTRAINT pk_tb_bill_std_req_fv PRIMARY KEY (bill_std_req_seq, field_cd),
     CONSTRAINT fk_tb_bill_std_req_fv FOREIGN KEY (bill_std_req_seq) REFERENCES tb_bill_std_req (bill_std_req_seq)
 );
+CREATE INDEX idx_tb_bill_std_req_fv_field_cd ON tb_bill_std_req_field_value (field_cd);
 
 -- ================================================================
 -- 테이블명 : TB_SUBS_MTH_BILL_QTY (가입별 월별과금량)
@@ -485,30 +521,35 @@ CREATE TABLE IF NOT EXISTS tb_subs_mth_bill_qty
 (
     subs_id                 VARCHAR(50)    NOT NULL,
     use_mth                 VARCHAR(6)     NOT NULL,
-    bill_std_id             VARCHAR(20)    NOT NULL,
+    bill_std_id             VARCHAR(30)    NOT NULL,
     use_qty                 DECIMAL(18,4)  NOT NULL,
     created_by              VARCHAR(50)    NOT NULL,
     created_dt              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by              VARCHAR(50)    NULL,
     updated_dt              DATETIME       NULL,
-    CONSTRAINT pk_tb_subs_mth_bill_qty PRIMARY KEY (subs_id, use_mth)
+    CONSTRAINT pk_tb_subs_mth_bill_qty PRIMARY KEY (subs_id, use_mth),
+    CONSTRAINT fk_tb_subs_mth_bill_qty_subs FOREIGN KEY (subs_id) REFERENCES tb_subscription (subs_id),
+    CONSTRAINT fk_tb_subs_mth_bill_qty_bs FOREIGN KEY (bill_std_id) REFERENCES tb_bill_std (bill_std_id)
 );
+CREATE INDEX idx_tb_subs_mth_bill_qty_bill_std ON tb_subs_mth_bill_qty (bill_std_id);
 
 -- ================================================================
 -- 테이블명 : TB_SPCL_SUBS_MTH_BILL_QTY (특수가입별 월별과금량)
 -- ================================================================
 CREATE TABLE IF NOT EXISTS tb_spcl_subs_mth_bill_qty
 (
-    spcl_subs_id            VARCHAR(20)    NOT NULL,
+    spcl_subs_id            VARCHAR(30)    NOT NULL,
     use_mth                 VARCHAR(6)     NOT NULL,
     subs_id                 VARCHAR(50)    NOT NULL,
-    bill_std_id             VARCHAR(20)    NOT NULL,
+    bill_std_id             VARCHAR(30)    NOT NULL,
     pue                     DECIMAL(10,4)  NOT NULL,
     created_by              VARCHAR(50)    NOT NULL,
     created_dt              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by              VARCHAR(50)    NULL,
     updated_dt              DATETIME       NULL,
-    CONSTRAINT pk_tb_spcl_subs_mth_bill_qty PRIMARY KEY (spcl_subs_id, use_mth)
+    CONSTRAINT pk_tb_spcl_subs_mth_bill_qty PRIMARY KEY (spcl_subs_id, use_mth),
+    CONSTRAINT fk_tb_spcl_subs_mth_bq_subs FOREIGN KEY (subs_id) REFERENCES tb_subscription (subs_id),
+    CONSTRAINT fk_tb_spcl_subs_mth_bq_bs FOREIGN KEY (bill_std_id) REFERENCES tb_bill_std (bill_std_id)
 );
 
 -- ================================================================
@@ -516,7 +557,7 @@ CREATE TABLE IF NOT EXISTS tb_spcl_subs_mth_bill_qty
 -- ================================================================
 CREATE TABLE IF NOT EXISTS tb_spcl_subs_mth_bill_elem
 (
-    spcl_subs_id            VARCHAR(20)    NOT NULL,
+    spcl_subs_id            VARCHAR(30)    NOT NULL,
     bill_mth                VARCHAR(6)     NOT NULL,
     subs_id                 VARCHAR(50)    NOT NULL,
     calc_amt                DECIMAL(18,2)  NOT NULL,
@@ -525,7 +566,8 @@ CREATE TABLE IF NOT EXISTS tb_spcl_subs_mth_bill_elem
     created_dt              DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_by              VARCHAR(50)    NULL,
     updated_dt              DATETIME       NULL,
-    CONSTRAINT pk_tb_spcl_subs_mth_bill_elem PRIMARY KEY (spcl_subs_id, bill_mth)
+    CONSTRAINT pk_tb_spcl_subs_mth_bill_elem PRIMARY KEY (spcl_subs_id, bill_mth),
+    CONSTRAINT fk_tb_spcl_subs_mth_be_subs FOREIGN KEY (subs_id) REFERENCES tb_subscription (subs_id)
 );
 
 -- ================================================================
@@ -547,5 +589,5 @@ CREATE TABLE IF NOT EXISTS tb_todo
     CONSTRAINT pk_tb_todo PRIMARY KEY (todo_id),
     CONSTRAINT uq_tb_todo_entity_eff UNIQUE (entity_type, entity_key1, entity_key2, eff_start_dt, eff_end_dt)
 );
-CREATE INDEX idx_todo_assignee ON tb_todo (assignee_id, todo_status_cd);
-CREATE INDEX idx_todo_entity ON tb_todo (entity_type, entity_key1, entity_key2, eff_start_dt, eff_end_dt);
+CREATE INDEX idx_tb_todo_assignee ON tb_todo (assignee_id, todo_status_cd);
+CREATE INDEX idx_tb_todo_entity ON tb_todo (entity_type, entity_key1, entity_key2, eff_start_dt, eff_end_dt);

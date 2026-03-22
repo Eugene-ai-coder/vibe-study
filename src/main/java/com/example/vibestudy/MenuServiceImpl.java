@@ -6,15 +6,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class MenuServiceImpl implements MenuService {
-
-    private static final DateTimeFormatter ID_FORMATTER =
-            DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
     private final MenuRepository menuRepository;
     private final MenuRoleRepository menuRoleRepository;
@@ -91,6 +87,9 @@ public class MenuServiceImpl implements MenuService {
         if (dto.getParentMenuId() != null) {
             Menu parent = menuRepository.findById(dto.getParentMenuId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "상위 메뉴를 찾을 수 없습니다."));
+            if (parent.getMenuUrl() != null && !parent.getMenuUrl().isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "화면 URL이 있는 메뉴 하위에는 메뉴를 추가할 수 없습니다.");
+            }
             menu.setMenuLevel(parent.getMenuLevel() + 1);
         } else {
             menu.setMenuLevel(1);
@@ -162,6 +161,110 @@ public class MenuServiceImpl implements MenuService {
         int idx = findIndex(siblings, menuId);
         if (idx < 0 || idx >= siblings.size() - 1) return;
         swapSortOrder(siblings.get(idx), siblings.get(idx + 1));
+    }
+
+    @Override
+    @Transactional
+    public void moveMenu(String menuId, MenuMoveRequestDto dto) {
+        Menu menu = menuRepository.findById(menuId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "메뉴를 찾을 수 없습니다."));
+
+        String oldParentId = menu.getParentMenuId();
+        String newParentId = dto.getNewParentId();
+
+        // 1. 순환참조 검증: newParentId가 menuId의 자손이면 거부
+        if (newParentId != null) {
+            if (newParentId.equals(menuId)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "자기 자신의 하위로 이동할 수 없습니다.");
+            }
+            Set<String> descendantIds = collectDescendantIds(menuId);
+            if (descendantIds.contains(newParentId)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "자신의 하위 메뉴로 이동할 수 없습니다.");
+            }
+            Menu newParent = menuRepository.findById(newParentId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "대상 상위 메뉴를 찾을 수 없습니다."));
+            if (newParent.getMenuUrl() != null && !newParent.getMenuUrl().isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "화면 URL이 있는 메뉴 하위로는 이동할 수 없습니다.");
+            }
+        }
+
+        // 2. 출발지에서 제거 (sortOrder 갱신은 컴팩팅으로 처리)
+        menu.setParentMenuId(newParentId);
+        menu.setSortOrder(dto.getNewSortOrder());
+
+        // 3. menuLevel 재계산 (자신 + 하위 전체)
+        int newLevel = (newParentId == null) ? 1
+                : menuRepository.findById(newParentId).get().getMenuLevel() + 1;
+        int levelDiff = newLevel - menu.getMenuLevel();
+        menu.setMenuLevel(newLevel);
+
+        String currentUser = SecurityUtils.getCurrentUserId();
+        menu.setUpdatedBy(currentUser);
+        menu.setUpdatedDt(LocalDateTime.now());
+        menuRepository.save(menu);
+
+        // 하위 메뉴 menuLevel 재귀 갱신
+        if (levelDiff != 0) {
+            updateDescendantLevels(menuId, levelDiff);
+        }
+
+        // 4. 도착지 형제 sortOrder 재정렬 (삽입 위치 반영)
+        compactSortOrdersWithInsert(newParentId, menuId, dto.getNewSortOrder());
+
+        // 5. 출발지 형제 sortOrder 컴팩팅 (빈 자리 정리)
+        if (!Objects.equals(oldParentId, newParentId)) {
+            compactSortOrders(oldParentId);
+        }
+    }
+
+    private Set<String> collectDescendantIds(String menuId) {
+        Set<String> ids = new HashSet<>();
+        List<Menu> children = menuRepository.findByParentMenuIdOrderBySortOrder(menuId);
+        for (Menu child : children) {
+            ids.add(child.getMenuId());
+            ids.addAll(collectDescendantIds(child.getMenuId()));
+        }
+        return ids;
+    }
+
+    private void updateDescendantLevels(String parentMenuId, int levelDiff) {
+        Queue<String> queue = new LinkedList<>();
+        queue.add(parentMenuId);
+        List<Menu> toUpdate = new ArrayList<>();
+        while (!queue.isEmpty()) {
+            String currentId = queue.poll();
+            List<Menu> children = menuRepository.findByParentMenuIdOrderBySortOrder(currentId);
+            for (Menu child : children) {
+                child.setMenuLevel(child.getMenuLevel() + levelDiff);
+                toUpdate.add(child);
+                queue.add(child.getMenuId());
+            }
+        }
+        if (!toUpdate.isEmpty()) {
+            menuRepository.saveAll(toUpdate);
+        }
+    }
+
+    private void compactSortOrdersWithInsert(String parentMenuId, String insertedMenuId, int insertPosition) {
+        List<Menu> siblings = getSiblingMenus(parentMenuId);
+        // insertedMenuId를 제외한 나머지를 순서대로 정렬하되, insertPosition에 삽입 메뉴 배치
+        List<Menu> others = siblings.stream()
+                .filter(m -> !m.getMenuId().equals(insertedMenuId))
+                .collect(Collectors.toList());
+        Menu inserted = siblings.stream()
+                .filter(m -> m.getMenuId().equals(insertedMenuId))
+                .findFirst().orElse(null);
+        if (inserted == null) return;
+
+        int pos = Math.max(0, Math.min(insertPosition - 1, others.size()));
+        others.add(pos, inserted);
+
+        for (int i = 0; i < others.size(); i++) {
+            if (others.get(i).getSortOrder() != i + 1) {
+                others.get(i).setSortOrder(i + 1);
+                menuRepository.save(others.get(i));
+            }
+        }
     }
 
     private List<Menu> getSiblingMenus(String parentMenuId) {
@@ -247,14 +350,11 @@ public class MenuServiceImpl implements MenuService {
 
     private Map<String, List<String>> loadMenuRolesMap(List<String> menuIds) {
         if (menuIds.isEmpty()) return Collections.emptyMap();
-        Map<String, List<String>> map = new HashMap<>();
-        for (String menuId : menuIds) {
-            List<MenuRole> roles = menuRoleRepository.findByMenuId(menuId);
-            if (!roles.isEmpty()) {
-                map.put(menuId, roles.stream().map(MenuRole::getRoleCd).collect(Collectors.toList()));
-            }
-        }
-        return map;
+        return menuRoleRepository.findByMenuIdIn(menuIds).stream()
+                .collect(Collectors.groupingBy(
+                        MenuRole::getMenuId,
+                        Collectors.mapping(MenuRole::getRoleCd, Collectors.toList())
+                ));
     }
 
     private MenuResponseDto toDto(Menu menu) {
@@ -274,6 +374,6 @@ public class MenuServiceImpl implements MenuService {
     }
 
     private String generateId() {
-        return "MNU" + LocalDateTime.now().format(ID_FORMATTER);
+        return IdGenerator.generate("MNU");
     }
 }

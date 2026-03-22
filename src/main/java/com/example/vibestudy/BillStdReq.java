@@ -30,14 +30,22 @@ public class BillStdReq {
     @Column(name = "std_reg_stat_cd", length = 20, nullable = false)
     private String stdRegStatCd;
 
-    @Column(name = "bill_std_id", length = 20, nullable = false)
+    @Column(name = "bill_std_id", length = 25, nullable = false)
     private String billStdId;
 
     @Column(name = "subs_id", length = 50, nullable = false)
     private String subsId;
 
-    @Column(name = "svc_cd", length = 10, nullable = false)
+    @Column(name = "svc_cd", length = 20, nullable = false)
     private String svcCd;
+
+    @Column(name = "basic_prod_cd", length = 20)
+    private String basicProdCd;
+
+    /* ── Optimistic Lock ───────────────────────────────────────── */
+    @Version
+    @Column(name = "version")
+    private Long version;
 
     /* ── System Fields ───────────────────────────────────────── */
     @Column(name = "created_by", length = 50, nullable = false)
@@ -83,6 +91,12 @@ public class BillStdReq {
 
     public String getSvcCd() { return svcCd; }
     public void setSvcCd(String svcCd) { this.svcCd = svcCd; }
+
+    public String getBasicProdCd() { return basicProdCd; }
+    public void setBasicProdCd(String basicProdCd) { this.basicProdCd = basicProdCd; }
+
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
 
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }

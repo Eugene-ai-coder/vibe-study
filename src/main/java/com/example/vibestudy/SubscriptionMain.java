@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public class SubscriptionMain {
 
     @Id
-    @Column(name = "subs_main_id", length = 20, nullable = false)
+    @Column(name = "subs_main_id", length = 30, nullable = false)
     private String subsMainId;
 
     @Column(name = "subs_id", length = 50, nullable = false)

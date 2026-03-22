@@ -11,6 +11,8 @@ public class BillStdReqRequestDto {
     @NotBlank(message = "서비스코드는 필수입니다.")
     private String svcCd;
 
+    private String basicProdCd;
+
     @NotBlank(message = "신청구분은 필수입니다.")
     private String reqTypeCd;
 
@@ -30,6 +32,9 @@ public class BillStdReqRequestDto {
 
     public String getSvcCd() { return svcCd; }
     public void setSvcCd(String svcCd) { this.svcCd = svcCd; }
+
+    public String getBasicProdCd() { return basicProdCd; }
+    public void setBasicProdCd(String basicProdCd) { this.basicProdCd = basicProdCd; }
 
     public String getReqTypeCd() { return reqTypeCd; }
     public void setReqTypeCd(String reqTypeCd) { this.reqTypeCd = reqTypeCd; }

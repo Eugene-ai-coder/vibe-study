@@ -9,4 +9,5 @@ export const menuApi = {
   delete:      (menuId)        => apiClient.delete(`/menus/${menuId}`).then(r => r.data),
   moveUp:      (menuId)        => apiClient.post(`/menus/${menuId}/move-up`).then(r => r.data),
   moveDown:    (menuId)        => apiClient.post(`/menus/${menuId}/move-down`).then(r => r.data),
+  moveMenu:    (menuId, data)  => apiClient.post(`/menus/${menuId}/move`, data).then(r => r.data),
 }

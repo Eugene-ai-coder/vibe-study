@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface BillStdApprvReqRepository extends JpaRepository<BillStdApprvReq, String> {
-    List<BillStdApprvReq> findByBillStdId(String billStdId);
+    List<BillStdApprvReq> findByBillStdReqId(String billStdReqId);
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +14,7 @@ public class BillStd {
 
     /* ── Key ─────────────────────────────────────────────────── */
     @Id
-    @Column(name = "bill_std_id", length = 20, nullable = false)
+    @Column(name = "bill_std_id", length = 25, nullable = false)
     private String billStdId;
 
     @Column(name = "subs_id", length = 50, nullable = false)
@@ -25,6 +26,9 @@ public class BillStd {
 
     @Column(name = "svc_cd", length = 10)
     private String svcCd;
+
+    @Column(name = "basic_prod_cd", length = 20)
+    private String basicProdCd;
 
     @Column(name = "last_eff_yn", length = 1)
     private String lastEffYn;
@@ -38,6 +42,11 @@ public class BillStd {
     /* ── 상태 코드 ───────────────────────────────────────────── */
     @Column(name = "bill_std_stat_cd", length = 10)
     private String billStdStatCd;
+
+    /* ── Optimistic Lock ───────────────────────────────────────── */
+    @Version
+    @Column(name = "version")
+    private Long version;
 
     /* ── System Fields ───────────────────────────────────────── */
     @Column(name = "created_by", length = 50, nullable = false)
@@ -66,6 +75,9 @@ public class BillStd {
     public String getSvcCd() { return svcCd; }
     public void setSvcCd(String svcCd) { this.svcCd = svcCd; }
 
+    public String getBasicProdCd() { return basicProdCd; }
+    public void setBasicProdCd(String basicProdCd) { this.basicProdCd = basicProdCd; }
+
     public String getLastEffYn() { return lastEffYn; }
     public void setLastEffYn(String lastEffYn) { this.lastEffYn = lastEffYn; }
 
@@ -77,6 +89,9 @@ public class BillStd {
 
     public String getBillStdStatCd() { return billStdStatCd; }
     public void setBillStdStatCd(String billStdStatCd) { this.billStdStatCd = billStdStatCd; }
+
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
 
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }

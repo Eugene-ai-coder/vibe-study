@@ -1,8 +1,5 @@
 <template>
   <div>
-    <Toast :message="successMsg" type="success" @close="successMsg = ''" />
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
-
     <div class="space-y-4">
       <h1 class="text-xl font-bold text-gray-800">가입 관리</h1>
 
@@ -15,7 +12,7 @@
               <option value="SUBS_ID">가입ID</option>
               <option value="SUBS_NM">가입명</option>
               <option value="SVC_CD">서비스</option>
-              <option value="FEE_PROD_CD">요금상품</option>
+              <option value="BASIC_PROD_CD">기본상품코드</option>
             </select>
           </div>
           <div>
@@ -64,8 +61,8 @@
             <CommonCodeSelect common-code="svc_cd" v-model="formData.svcCd" />
           </div>
           <div>
-            <label class="block text-xs text-gray-500 mb-1">요금상품</label>
-            <CommonCodeSelect common-code="fee_prod_cd" v-model="formData.feeProdCd" />
+            <label class="block text-xs text-gray-500 mb-1">기본상품코드</label>
+            <CommonCodeSelect common-code="basic_prod_cd" v-model="formData.basicProdCd" />
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">상태</label>
@@ -78,7 +75,7 @@
           <div>
             <label class="block text-xs text-gray-500 mb-1">관리자</label>
             <div class="flex gap-2">
-              <input :value="adminDisplay" readonly
+              <input :value="adminNickname" readonly
                 class="flex-1 h-8 px-2 border border-gray-200 rounded text-sm bg-gray-50 text-gray-400" />
               <button @click="showUserPopup = true"
                 class="h-8 px-3 border border-gray-300 rounded text-sm text-gray-600 hover:bg-gray-50">검색</button>
@@ -126,7 +123,7 @@ import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { searchSubscriptions, createSubscription, updateSubscription, deleteSubscription } from '../api/subscriptionApi'
-import Toast from '../components/common/Toast.vue'
+import { useToast } from '../composables/useToast'
 import DataGrid from '../components/common/DataGrid.vue'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
@@ -137,9 +134,9 @@ import { useCommonCodeLabel } from '../composables/useCommonCodeLabel'
 const auth = useAuthStore()
 const route = useRoute()
 
-const { getLabel } = useCommonCodeLabel(['subs_status_cd', 'svc_cd', 'fee_prod_cd'])
+const { getLabel } = useCommonCodeLabel(['subs_status_cd', 'svc_cd', 'basic_prod_cd'])
 
-const EMPTY_FORM = { subsId: '', subsNm: '', svcCd: '', feeProdCd: '', subsStatusCd: '', subsDt: '', chgDt: '', adminId: '' }
+const EMPTY_FORM = { subsId: '', subsNm: '', svcCd: '', basicProdCd: '', subsStatusCd: '', subsDt: '', chgDt: '', adminId: '' }
 const showUserPopup = ref(false)
 
 const columns = computed(() => [
@@ -147,8 +144,8 @@ const columns = computed(() => [
   { key: 'subsNm', header: '가입명', size: 150 },
   { key: 'svcCd', header: '서비스', size: 120,
     cell: { props: ['value'], setup(props) { return () => getLabel('svc_cd', props.value) } } },
-  { key: 'feeProdCd', header: '요금상품', size: 120,
-    cell: { props: ['value'], setup(props) { return () => getLabel('fee_prod_cd', props.value) } } },
+  { key: 'basicProdCd', header: '기본상품코드', size: 120,
+    cell: { props: ['value'], setup(props) { return () => getLabel('basic_prod_cd', props.value) } } },
   { key: 'subsStatusCd', header: '상태', size: 80,
     cell: { props: ['value'], setup(props) { return () => getLabel('subs_status_cd', props.value) } } },
   { key: 'subsDt', header: '가입일시', size: 160 },
@@ -159,8 +156,7 @@ const selectedSubs = ref(null)
 const formData = reactive({ ...EMPTY_FORM })
 const keyword = ref('')
 const searchType = ref('SUBS_ID')
-const errorMsg = ref('')
-const successMsg = ref('')
+const { showSuccess, showError } = useToast()
 const confirmOpen = ref(false)
 const saveConfirmOpen = ref(false)
 const saveConfirmMessage = ref('')
@@ -174,13 +170,12 @@ const pageSize = 10
 
 const isRowSelected = ref(false)
 const adminNickname = ref('')
-const adminDisplay = computed(() => adminNickname.value)
 
 const toFormData = (dto) => ({
   subsId: dto.subsId || '',
   subsNm: dto.subsNm || '',
   svcCd: dto.svcCd || '',
-  feeProdCd: dto.feeProdCd || '',
+  basicProdCd: dto.basicProdCd || '',
   subsStatusCd: dto.subsStatusCd || '',
   subsDt: dto.subsDt ? dto.subsDt.slice(0, 16) : '',
   chgDt: dto.chgDt ? dto.chgDt.slice(0, 16) : '',
@@ -191,7 +186,7 @@ const toRequestDto = () => ({
   subsId: formData.subsId || null,
   subsNm: formData.subsNm || null,
   svcCd: formData.svcCd || null,
-  feeProdCd: formData.feeProdCd || null,
+  basicProdCd: formData.basicProdCd || null,
   subsStatusCd: formData.subsStatusCd || null,
   subsDt: formData.subsDt || null,
   chgDt: formData.chgDt || null,
@@ -199,7 +194,6 @@ const toRequestDto = () => ({
   createdBy: auth.user?.userId ?? 'SYSTEM',
 })
 
-const clearMessages = () => { errorMsg.value = ''; successMsg.value = '' }
 
 const fetchList = async (pageNum = 0) => {
   const data = await searchSubscriptions({ type: searchType.value, keyword: keyword.value.trim(), page: pageNum, size: pageSize })
@@ -217,7 +211,7 @@ watch(() => route.query.entityId || route.query.subsId, async (subsId) => {
     searchType.value = 'SUBS_ID'
     try {
       await fetchList()
-    } catch { errorMsg.value = '조회에 실패했습니다.' }
+    } catch { showError('조회에 실패했습니다.') }
   }
 }, { immediate: true })
 
@@ -227,7 +221,6 @@ const onAdminSelect = (user) => {
 }
 
 const onSearch = async () => {
-  clearMessages()
   isSearching.value = true
   try {
     await fetchList(0)
@@ -235,7 +228,7 @@ const onSearch = async () => {
     Object.assign(formData, EMPTY_FORM)
     adminNickname.value = ''
     isRowSelected.value = false
-  } catch { errorMsg.value = '조회에 실패했습니다.' }
+  } catch { showError('조회에 실패했습니다.') }
   finally { isSearching.value = false }
 }
 
@@ -247,16 +240,14 @@ const onRowSelect = (item) => {
 }
 
 const onRegister = () => {
-  clearMessages()
-  if (!formData.subsId.trim()) { errorMsg.value = '가입ID는 필수값입니다.'; return }
+  if (!formData.subsId.trim()) { showError('가입ID는 필수값입니다.'); return }
   saveConfirmMessage.value = '가입을 등록하시겠습니까?'
   saveConfirmAction.value = 'register'
   saveConfirmOpen.value = true
 }
 
 const onUpdate = () => {
-  clearMessages()
-  if (!selectedSubs.value) { errorMsg.value = '가입을 선택해 주세요.'; return }
+  if (!selectedSubs.value) { showError('가입을 선택해 주세요.'); return }
   saveConfirmMessage.value = '가입 정보를 변경하시겠습니까?'
   saveConfirmAction.value = 'update'
   saveConfirmOpen.value = true
@@ -271,27 +262,26 @@ const handleSaveConfirm = async () => {
       Object.assign(formData, toFormData(created))
       adminNickname.value = created.adminNickname || ''
       isRowSelected.value = true
-      successMsg.value = '등록이 완료되었습니다.'
+      showSuccess('등록이 완료되었습니다.')
     } else {
       const updated = await updateSubscription(selectedSubs.value.subsId, toRequestDto())
       selectedSubs.value = updated
       Object.assign(formData, toFormData(updated))
       adminNickname.value = updated.adminNickname || ''
-      successMsg.value = '변경이 완료되었습니다.'
+      showSuccess('변경이 완료되었습니다.')
     }
     await fetchList()
   } catch (err) {
     if (saveConfirmAction.value === 'register') {
-      errorMsg.value = err?.response?.data?.message || '등록에 실패했습니다.'
+      showError(err?.response?.data?.message || '등록에 실패했습니다.')
     } else {
-      errorMsg.value = '변경에 실패했습니다.'
+      showError('변경에 실패했습니다.')
     }
   }
 }
 
 const onDeleteClick = () => {
-  clearMessages()
-  if (!selectedSubs.value) { errorMsg.value = '가입을 선택해 주세요.'; return }
+  if (!selectedSubs.value) { showError('가입을 선택해 주세요.'); return }
   confirmOpen.value = true
 }
 
@@ -303,12 +293,12 @@ const onDelete = async () => {
     Object.assign(formData, EMPTY_FORM)
     adminNickname.value = ''
     isRowSelected.value = false
-    successMsg.value = '삭제가 완료되었습니다.'
+    showSuccess('삭제가 완료되었습니다.')
     await fetchList()
   } catch (err) {
-    errorMsg.value = err?.response?.status === 409
+    showError(err?.response?.status === 409
       ? '과금기준이 존재하는 가입은 삭제할 수 없습니다.'
-      : '삭제에 실패했습니다.'
+      : '삭제에 실패했습니다.')
   }
 }
 

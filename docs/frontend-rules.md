@@ -1,13 +1,13 @@
-# Frontend Rules (React 화면 개발 전용)
+# Frontend Rules (Vue 3 화면 개발 전용)
 
 ---
 
 ## 1. 구조 규칙
 
-- 신규 기능: `components/{domain}/`, `hooks/use{Domain}.js`, `api/{domain}Api.js` 패턴 유지
+- 신규 기능: `components/{domain}/`, `composables/use{Domain}.js`, `api/{domain}Api.js` 패턴 유지
 - **Page**: 전체 상태 소유 + 이벤트 조율만 담당
 - **Component**: UI 렌더링 전담 — 상태 없음, props만 수신
-- **Hook**: API 호출 로직 캡슐화 — Page에서 직접 API 호출 금지
+- **Composable**: API 호출 로직 캡슐화 — Page에서 직접 API 호출 금지
 - `apiClient.js` 경유 필수 — `axios` 직접 import 금지
 - 모든 메인 화면: `<MainLayout>` 으로 감싸기 (로그인 페이지 제외)
 
@@ -17,31 +17,35 @@
 
 ### 2.1 메시지 변수명 고정
 
-```jsx
-const [errorMsg, setErrorMsg]     = useState(null)
-const [successMsg, setSuccessMsg] = useState(null)
+```vue
+<script setup>
+const errorMsg = ref(null)
+const successMsg = ref(null)
+</script>
 ```
 
 - `errorMsg` / `successMsg` 외 다른 명칭 금지 (`error`, `message`, `toast` 등)
 - 액션 시작 전 항상 초기화:
 
-```jsx
-const clearMessages = () => { setErrorMsg(null); setSuccessMsg(null) }
+```js
+const clearMessages = () => { errorMsg.value = null; successMsg.value = null }
 ```
 
 ### 2.2 EMPTY_FORM 패턴
 
 폼 초기값을 상수로 선언하고 등록·취소·행 선택 해제 시 재사용:
 
-```jsx
+```vue
+<script setup>
 const EMPTY_FORM = {
   subsId: '', subsNm: '', svcNm: '', subsStatusCd: ''
 }
 
-const [formData, setFormData] = useState(EMPTY_FORM)
+const formData = ref({ ...EMPTY_FORM })
 
 // 초기화 시
-setFormData(EMPTY_FORM)
+formData.value = { ...EMPTY_FORM }
+</script>
 ```
 
 인라인 `{}` 초기화 금지 — 필드 누락 방지 및 일관성 확보.
@@ -52,15 +56,15 @@ setFormData(EMPTY_FORM)
 
 HTTP 상태 코드 기반으로 메시지를 분기한다:
 
-```jsx
+```js
 } catch (err) {
   const status = err?.response?.status
   if (status === 409) {
-    setErrorMsg('과금기준이 존재하는 가입은 삭제할 수 없습니다.')
+    errorMsg.value = '과금기준이 존재하는 가입은 삭제할 수 없습니다.'
   } else if (status === 400) {
-    setErrorMsg(err?.response?.data?.message || '입력값을 확인해 주세요.')
+    errorMsg.value = err?.response?.data?.message || '입력값을 확인해 주세요.'
   } else {
-    setErrorMsg('처리에 실패했습니다.')
+    errorMsg.value = '처리에 실패했습니다.'
   }
 }
 ```
@@ -89,7 +93,7 @@ HTTP 상태 코드 기반으로 메시지를 분기한다:
 
 **목록 공통 컴포넌트 (`DataGrid`)**
 
-모든 목록은 `components/common/DataGrid.jsx`를 사용한다. 직접 `<table>`을 작성하지 않는다.
+모든 목록은 `components/common/DataGrid.vue`를 사용한다. 직접 `<table>`을 작성하지 않는다.
 
 - 컬럼 너비: 컬럼 정의의 `size`(초기 px) / `minSize`(최소 px)로 선언 — TanStack Table 내장 리사이즈 사용
 - 리사이즈: `columnResizeMode: 'onChange'` + `header.getResizeHandler()` — 수동 mousedown 이벤트 금지
@@ -99,24 +103,24 @@ HTTP 상태 코드 기반으로 메시지를 분기한다:
 - `title`: 그리드 타이틀 (선택) — 툴바 좌측에 표시. 필요 시 적용
 - `storageKey`: 컬럼 개인화 활성화 (선택) — camelCase 페이지명 (예: `userPage`, `subscriptionMainPage`). 필요 시 적용
 - `pinnedCount`: 좌측 컬럼 고정 (선택) — 고정할 왼쪽 컬럼 수. 필요 시 적용
-- 팝업(필터/설정): `createPortal(document.body)` + `position: fixed` — overflow 컨텍스트 탈출 원칙
+- 팝업(필터/설정): `Teleport(body)` + `position: fixed` — overflow 컨텍스트 탈출 원칙
 
 **컬럼 정의 예시**
 
-```jsx
-const columns = useMemo(() => [
-  { accessorKey: 'userId',   header: '아이디', size: 120, minSize: 60 },
-  { accessorKey: 'nickname', header: '닉네임', size: 120, minSize: 60 },
-  { accessorKey: 'email',    header: '이메일', size: 200, minSize: 80 },
+```js
+const columns = [
+  { key: 'userId',   header: '아이디', size: 120, minSize: 60 },
+  { key: 'nickname', header: '닉네임', size: 120, minSize: 60 },
+  { key: 'email',    header: '이메일', size: 200, minSize: 80 },
   {
-    accessorKey: 'accountStatus',
+    key: 'accountStatus',
     header: '상태',
     size: 80,
     minSize: 60,
-    cell: ({ getValue }) => { /* 커스텀 셀 렌더링 */ },
+    cell: (row) => { /* 커스텀 셀 렌더링 */ },
     enableColumnFilter: false,  // 필터 비활성화가 필요한 컬럼에 지정
   },
-], [])
+]
 ```
 
 **DataGrid 사용 유형**
@@ -128,63 +132,63 @@ const columns = useMemo(() => [
 | 페이징 목록 | 데이터가 지속 증가 (트랜잭션성) | 서버 페이징 | User, Qna, Subscription |
 | 전건 목록 | 건수 한정적 (코드/설정성) | 없음 | CommonCode, BillStd |
 
-**A. 페이징 목록 — Hook 패턴**
+**A. 페이징 목록 — Composable 패턴**
 
-```jsx
-// Hook: page 상태 + fetch 함수가 page/size를 서버에 전달
-const [items, setItems] = useState([])
-const [page, setPage] = useState(0)
-const [totalPages, setTotalPages] = useState(0)
-const [totalElements, setTotalElements] = useState(0)
+```js
+// composable: page 상태 + fetch 함수가 page/size를 서버에 전달
+const items = ref([])
+const page = ref(0)
+const totalPages = ref(0)
+const totalElements = ref(0)
 const pageSize = 10
 
-const fetchList = useCallback(async (searchParams = {}, pageNum = 0) => {
+const fetchList = async (searchParams = {}, pageNum = 0) => {
   const data = await getListPage({ page: pageNum, size: pageSize, ...searchParams })
-  setItems(data.content)
-  setPage(data.number)
-  setTotalPages(data.totalPages)
-  setTotalElements(data.totalElements)
-}, [])
+  items.value = data.content
+  page.value = data.number
+  totalPages.value = data.totalPages
+  totalElements.value = data.totalElements
+}
 ```
 
-```jsx
-// Page → DataGrid: 페이징 props 전달
+```vue
+<!-- Page → DataGrid: 페이징 props 전달 -->
 <DataGrid
-  columns={columns}
-  data={items}
-  page={page}
-  totalPages={totalPages}
-  totalElements={totalElements}
-  pageSize={pageSize}
-  onPageChange={(p) => fetchList(searchParams, p)}
-  onRowClick={handleRowClick}
-  selectedRowId={selectedId}
-  rowIdAccessor="userId"
-  storageKey="userPage"
+  :columns="columns"
+  :data="items"
+  :page="page"
+  :total-pages="totalPages"
+  :total-elements="totalElements"
+  :page-size="pageSize"
+  @page-change="(p) => fetchList(searchParams, p)"
+  @row-click="handleRowClick"
+  :selected-row-id="selectedId"
+  row-id-accessor="userId"
+  storage-key="userPage"
   title="사용자 목록"
 />
 ```
 
-**B. 전건 목록 — Hook 패턴**
+**B. 전건 목록 — Composable 패턴**
 
-```jsx
-// Hook: 단순 배열 반환, 페이징 상태 없음
-const [items, setItems] = useState([])
+```js
+// composable: 단순 배열 반환, 페이징 상태 없음
+const items = ref([])
 
-const fetchList = useCallback(async (params = {}) => {
+const fetchList = async (params = {}) => {
   const res = await getAll(params)
-  setItems(res.data)
-}, [])
+  items.value = res.data
+}
 ```
 
-```jsx
-// Page → DataGrid: onPageChange 생략 → 페이징 UI 자동 비노출
+```vue
+<!-- Page → DataGrid: @page-change 생략 → 페이징 UI 자동 비노출 -->
 <DataGrid
-  columns={columns}
-  data={items}
-  onRowClick={handleRowClick}
-  selectedRowId={selectedCode}
-  rowIdAccessor="commonCode"
+  :columns="columns"
+  :data="items"
+  @row-click="handleRowClick"
+  :selected-row-id="selectedCode"
+  row-id-accessor="commonCode"
 />
 ```
 
@@ -199,7 +203,7 @@ D. 액션바 (ActionBar) — FloatingActionBar 공통 컴포넌트 필수 사용
 
 **액션바 배치 규칙**
 
-- 반드시 `components/common/FloatingActionBar.jsx` 공통 컴포넌트를 사용한다 — 인라인 `fixed`/`sticky` 직접 작성 금지
+- 반드시 `components/common/FloatingActionBar.vue` 공통 컴포넌트를 사용한다 — 인라인 `fixed`/`sticky` 직접 작성 금지
 - 동작: 콘텐츠가 짧을 때는 콘텐츠 바로 아래 배치, 스크롤이 생기면 화면 하단에 플로팅 고정 (`sticky bottom-0`)
 - 페이지 콘텐츠 래퍼에 `pb-20` 등 하단 여백 불필요 — sticky는 콘텐츠를 가리지 않음
 
@@ -218,12 +222,12 @@ D. 액션바 (ActionBar) — FloatingActionBar 공통 컴포넌트 필수 사용
 - 배경: `bg-gray-50 border border-gray-200 rounded-lg p-3` — 입력폼 영역과 시각적 분리
 - 검색 조건 드롭다운 + 입력창 + 검색 버튼을 좌측부터 순서대로 배치
 
-```jsx
-<div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
-  <div className="flex items-center gap-2">
-    <select className="h-8 border border-gray-300 rounded px-2 text-sm ...">...</select>
-    <input  className="h-8 border border-gray-300 rounded px-2 text-sm w-48 ..." />
-    <button className="h-8 px-4 bg-blue-600 text-white rounded text-sm ...">조회</button>
+```vue
+<div class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
+  <div class="flex items-center gap-2">
+    <select class="h-8 border border-gray-300 rounded px-2 text-sm ...">...</select>
+    <input  class="h-8 border border-gray-300 rounded px-2 text-sm w-48 ..." />
+    <button class="h-8 px-4 bg-blue-600 text-white rounded text-sm ...">조회</button>
   </div>
 </div>
 ```
@@ -235,32 +239,32 @@ D. 액션바 (ActionBar) — FloatingActionBar 공통 컴포넌트 필수 사용
 - **열 수**: 한 행에 3개 항목 (`grid-cols-3`)
 - **논리 그룹화**: 관련 항목끼리 섹션으로 묶고 소제목(`text-xs font-semibold text-gray-500 uppercase tracking-wide`) 부여
 
-```jsx
-{/* 섹션 예시 */}
-<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">기본 정보</h3>
-  <div className="grid grid-cols-3 gap-x-4 gap-y-3">
+```vue
+<!-- 섹션 예시 -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+  <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">기본 정보</h3>
+  <div class="grid grid-cols-3 gap-x-4 gap-y-3">
     <div>
-      <label className="block text-xs text-gray-500 mb-1">레이블 <span className="text-blue-400">*</span></label>
-      <input className="w-full h-8 border border-gray-300 rounded px-2 text-sm focus:outline-none focus:border-blue-400" />
+      <label class="block text-xs text-gray-500 mb-1">레이블 <span class="text-blue-400">*</span></label>
+      <input class="w-full h-8 border border-gray-300 rounded px-2 text-sm focus:outline-none focus:border-blue-400" />
     </div>
     <div>
-      <label className="block text-xs text-gray-500 mb-1">레이블</label>
-      <input className="w-full h-8 border border-gray-200 rounded px-2 text-sm bg-gray-50 text-gray-400" readOnly />
+      <label class="block text-xs text-gray-500 mb-1">레이블</label>
+      <input class="w-full h-8 border border-gray-200 rounded px-2 text-sm bg-gray-50 text-gray-400" readonly />
     </div>
     <div>
-      <label className="block text-xs text-gray-500 mb-1">레이블</label>
-      <div className="flex gap-2">
-        <input className="flex-1 h-8 border border-gray-300 rounded px-2 text-sm" />
-        <button className="h-8 px-3 border border-gray-300 rounded text-sm text-gray-600 hover:bg-gray-50">검색</button>
+      <label class="block text-xs text-gray-500 mb-1">레이블</label>
+      <div class="flex gap-2">
+        <input class="flex-1 h-8 border border-gray-300 rounded px-2 text-sm" />
+        <button class="h-8 px-3 border border-gray-300 rounded text-sm text-gray-600 hover:bg-gray-50">검색</button>
       </div>
     </div>
   </div>
 </div>
 ```
 
-- 필수 항목 표시: `<span className="text-blue-400">*</span>` — 빨간색 대신 브랜드 컬러 사용
-- `readOnly` 필드: `bg-gray-50 text-gray-400 border-gray-200` (테두리 연하게 처리)
+- 필수 항목 표시: `<span class="text-blue-400">*</span>` — 빨간색 대신 브랜드 컬러 사용
+- `readonly` 필드: `bg-gray-50 text-gray-400 border-gray-200` (테두리 연하게 처리)
 - 조회 버튼이 있는 필드: 셀 내 `flex gap-2`로 입력+버튼 수평 배치
 - 와이드 필드(textarea 등): `col-span-2` 또는 `col-span-3`으로 확장
 
@@ -285,36 +289,39 @@ D. 액션바 (ActionBar) — FloatingActionBar 공통 컴포넌트 필수 사용
 | 상황 | 컴포넌트 |
 |---|---|
 | 저장·변경·삭제·조회 성공/실패 | `<Toast>` — 상단 중앙, 3초 자동소멸 |
-| 폼 입력 유효성 오류 (클라이언트) | `<p className="text-sm text-red-600">` |
-| 서버 validation 오류 (배열 응답) | `<div className="bg-red-50 border border-red-200 ..."><ul>` |
+| 폼 입력 유효성 오류 (클라이언트) | `<p class="text-sm text-red-600">` |
+| 서버 validation 오류 (배열 응답) | `<div class="bg-red-50 border border-red-200 ..."><ul>` |
 | 파괴적 액션 확인 (삭제 등) | `<ConfirmDialog>` — 모달 오버레이 |
 | 페이지 초기 데이터 로드 실패 | `<ErrorMessage>` — 재시도 버튼 포함 |
 
 ### 5.2 Toast 배치
 
-```jsx
-// MainLayout 바로 아래 첫 번째 위치
+```vue
+<!-- MainLayout 바로 아래 첫 번째 위치 -->
 <MainLayout>
-  <Toast message={successMsg} type="success" onClose={() => setSuccessMsg(null)} />
-  <Toast message={errorMsg}   type="error"   onClose={() => setErrorMsg(null)} />
+  <Toast :message="successMsg" type="success" @close="successMsg = null" />
+  <Toast :message="errorMsg"   type="error"   @close="errorMsg = null" />
   ...
 </MainLayout>
 ```
 
 ### 5.3 ConfirmDialog 패턴
 
-```jsx
-const [confirmOpen, setConfirmOpen] = useState(false)
+```vue
+<script setup>
+const confirmOpen = ref(false)
+</script>
 
-<button onClick={() => setConfirmOpen(true)}>삭제</button>
+<template>
+  <button @click="confirmOpen = true">삭제</button>
 
-{confirmOpen && (
   <ConfirmDialog
+    v-if="confirmOpen"
     message="삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
-    onConfirm={() => { setConfirmOpen(false); handleDelete() }}
-    onCancel={() => setConfirmOpen(false)}
+    @confirm="confirmOpen = false; handleDelete()"
+    @cancel="confirmOpen = false"
   />
-)}
+</template>
 ```
 
 - 브라우저 기본 `confirm()` 사용 금지

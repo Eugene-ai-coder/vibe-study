@@ -21,7 +21,7 @@ public interface SubscriptionMainRepository extends JpaRepository<SubscriptionMa
     boolean existsBySubsId(String subsId);
 
     @Query(value = """
-        SELECT s.subs_id, s.subs_nm, s.svc_cd, s.fee_prod_cd,
+        SELECT s.subs_id, s.subs_nm, s.svc_cd, s.basic_prod_cd,
                sm.main_subs_yn, sm.main_subs_id
         FROM tb_subscription s
         LEFT JOIN tb_subscription_main sm
@@ -30,7 +30,7 @@ public interface SubscriptionMainRepository extends JpaRepository<SubscriptionMa
         WHERE (:svcCd IS NULL OR s.svc_cd = :svcCd)
           AND (
             (:searchType = '서비스'    AND LOWER(s.svc_cd)        LIKE LOWER(CONCAT(:keyword, '%'))) OR
-            (:searchType = '상품'      AND LOWER(s.fee_prod_cd)   LIKE LOWER(CONCAT(:keyword, '%'))) OR
+            (:searchType = '상품'      AND LOWER(s.basic_prod_cd)   LIKE LOWER(CONCAT(:keyword, '%'))) OR
             (:searchType = '가입ID'    AND LOWER(s.subs_id)       LIKE LOWER(CONCAT(:keyword, '%'))) OR
             (:searchType = '대표가입ID' AND LOWER(sm.main_subs_id) LIKE LOWER(CONCAT(:keyword, '%')))
           )
@@ -45,7 +45,7 @@ public interface SubscriptionMainRepository extends JpaRepository<SubscriptionMa
         WHERE (:svcCd IS NULL OR s.svc_cd = :svcCd)
           AND (
             (:searchType = '서비스'    AND LOWER(s.svc_cd)        LIKE LOWER(CONCAT(:keyword, '%'))) OR
-            (:searchType = '상품'      AND LOWER(s.fee_prod_cd)   LIKE LOWER(CONCAT(:keyword, '%'))) OR
+            (:searchType = '상품'      AND LOWER(s.basic_prod_cd)   LIKE LOWER(CONCAT(:keyword, '%'))) OR
             (:searchType = '가입ID'    AND LOWER(s.subs_id)       LIKE LOWER(CONCAT(:keyword, '%'))) OR
             (:searchType = '대표가입ID' AND LOWER(sm.main_subs_id) LIKE LOWER(CONCAT(:keyword, '%')))
           )

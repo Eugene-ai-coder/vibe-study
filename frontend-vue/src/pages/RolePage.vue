@@ -1,8 +1,5 @@
 <template>
   <div>
-    <Toast :message="successMsg" type="success" @close="successMsg = ''" />
-    <Toast :message="errorMsg" type="error" @close="errorMsg = ''" />
-
     <div class="space-y-4">
       <h1 class="text-xl font-bold text-gray-800">권한관리</h1>
 
@@ -126,7 +123,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { roleApi } from '../api/roleApi'
-import Toast from '../components/common/Toast.vue'
+import { useToast } from '../composables/useToast'
 import FloatingActionBar from '../components/common/FloatingActionBar.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import DataGrid from '../components/common/DataGrid.vue'
@@ -140,22 +137,20 @@ const selectedAddUserIds = ref([])
 const showAddPopup = ref(false)
 const confirmOpen = ref(false)
 const addConfirmOpen = ref(false)
-const successMsg = ref('')
-const errorMsg = ref('')
+const { showSuccess, showError } = useToast()
 
 const assignedColumns = [
-  { accessorKey: 'userId', header: '사용자ID', width: 140 },
-  { accessorKey: 'nickname', header: '닉네임', width: 140 },
-  { accessorKey: 'accountStatusLabel', header: '계정상태', width: 100 },
+  { key: 'userId', header: '사용자ID', width: 140 },
+  { key: 'nickname', header: '닉네임', width: 140 },
+  { key: 'accountStatusLabel', header: '계정상태', width: 100 },
 ]
 
-const clearMessages = () => { successMsg.value = ''; errorMsg.value = '' }
 
 const fetchRoles = async () => {
   try {
     roles.value = await roleApi.getRoles()
   } catch {
-    errorMsg.value = '역할 목록 조회에 실패했습니다.'
+    showError('역할 목록 조회에 실패했습니다.')
   }
 }
 
@@ -167,7 +162,7 @@ const fetchAssignedUsers = async (roleCd) => {
       accountStatusLabel: u.accountStatus === 1 ? '활성' : '비활성'
     }))
   } catch {
-    errorMsg.value = '사용자 목록 조회에 실패했습니다.'
+    showError('사용자 목록 조회에 실패했습니다.')
   }
 }
 
@@ -175,7 +170,7 @@ const fetchAvailableUsers = async (roleCd) => {
   try {
     availableUsers.value = await roleApi.getAvailableUsers(roleCd)
   } catch {
-    errorMsg.value = '미할당 사용자 조회에 실패했습니다.'
+    showError('미할당 사용자 조회에 실패했습니다.')
   }
 }
 
@@ -184,14 +179,12 @@ onMounted(async () => {
 })
 
 const handleRoleSelect = async (roleCd) => {
-  clearMessages()
   selectedRoleCd.value = roleCd
   selectedUserId.value = null
   await fetchAssignedUsers(roleCd)
 }
 
 const handleAddUsers = () => {
-  clearMessages()
   addConfirmOpen.value = true
 }
 
@@ -201,28 +194,27 @@ const handleAddUsersConfirm = async () => {
     const currentIds = assignedUsers.value.map(u => u.userId)
     const newIds = [...currentIds, ...selectedAddUserIds.value]
     await roleApi.saveRoleUsers(selectedRoleCd.value, newIds)
-    successMsg.value = '사용자가 추가되었습니다.'
+    showSuccess('사용자가 추가되었습니다.')
     showAddPopup.value = false
     selectedAddUserIds.value = []
     await fetchAssignedUsers(selectedRoleCd.value)
   } catch {
-    errorMsg.value = '사용자 추가에 실패했습니다.'
+    showError('사용자 추가에 실패했습니다.')
   }
 }
 
 const handleRemoveUser = async () => {
   confirmOpen.value = false
-  clearMessages()
   try {
     const remainingIds = assignedUsers.value
       .filter(u => u.userId !== selectedUserId.value)
       .map(u => u.userId)
     await roleApi.saveRoleUsers(selectedRoleCd.value, remainingIds)
-    successMsg.value = '사용자가 제거되었습니다.'
+    showSuccess('사용자가 제거되었습니다.')
     selectedUserId.value = null
     await fetchAssignedUsers(selectedRoleCd.value)
   } catch {
-    errorMsg.value = '사용자 제거에 실패했습니다.'
+    showError('사용자 제거에 실패했습니다.')
   }
 }
 

@@ -9,14 +9,14 @@
           placeholder="아이디"
           v-model="userId"
           @keydown.enter="handleLogin"
-          class="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+          class="w-full h-8 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"
         />
         <input
           type="password"
           placeholder="비밀번호"
           v-model="password"
           @keydown.enter="handleLogin"
-          class="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+          class="w-full h-8 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"
         />
 
         <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
@@ -29,7 +29,7 @@
         <button
           @click="handleLogin"
           :disabled="loading"
-          class="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-60"
+          class="w-full h-8 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-60"
         >
           {{ loading ? '로그인 중...' : '로그인' }}
         </button>
@@ -57,8 +57,10 @@ const errorMsg = ref('')
 const loading = ref(false)
 
 onMounted(() => {
-  const saved = localStorage.getItem('savedUserId')
-  if (saved) { userId.value = saved; rememberMe.value = true }
+  try {
+    const saved = localStorage.getItem('savedUserId')
+    if (saved) { userId.value = saved; rememberMe.value = true }
+  } catch { /* localStorage 접근 불가 시 무시 */ }
 })
 
 const handleLogin = async () => {
